@@ -62,6 +62,8 @@ jobs:
 
       - name: Configura GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Carica il sito
         uses: actions/upload-pages-artifact@v3
