@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "updateMode": "github-actions",
-  "lastRunAt": "2026-11-13T16:38:26.592Z",
-  "pendingReviewCount": 0,
+  "lastRunAt": "2026-11-13T16:40:37.398Z",
+  "pendingReviewCount": 1,
   "sources": [
     {
       "id": "inps-auu",
@@ -11,8 +11,8 @@
       "region": null,
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
-      "status": "baseline",
-      "lastCheckedAt": "2026-11-13T16:38:24.576Z",
+      "status": "unchanged",
+      "lastCheckedAt": "2026-11-13T16:40:35.544Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -24,8 +24,8 @@
       "region": null,
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html",
-      "status": "baseline",
-      "lastCheckedAt": "2026-11-13T16:38:24.622Z",
+      "status": "unchanged",
+      "lastCheckedAt": "2026-11-13T16:40:35.605Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -37,8 +37,8 @@
       "region": null,
       "municipality": null,
       "url": "https://www.arera.it/consumatori/bonus-sociale",
-      "status": "baseline",
-      "lastCheckedAt": "2026-11-13T16:38:24.624Z",
+      "status": "unchanged",
+      "lastCheckedAt": "2026-11-13T16:40:35.606Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -50,10 +50,14 @@
       "region": "Lombardia",
       "municipality": null,
       "url": "https://www.bandi.regione.lombardia.it/servizi/home",
-      "status": "baseline",
-      "lastCheckedAt": "2026-11-13T16:38:24.626Z",
-      "pendingReview": false,
-      "lastChange": null,
+      "status": "changed",
+      "lastCheckedAt": "2026-11-13T16:40:35.607Z",
+      "pendingReview": true,
+      "lastChange": {
+        "detectedAt": "2026-11-13T16:40:35.607Z",
+        "title": "Home | Bandi e Servizi",
+        "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi"
+      },
       "lastError": null
     },
     {
@@ -64,7 +68,7 @@
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva",
       "status": "error",
-      "lastCheckedAt": "2026-11-13T16:38:24.627Z",
+      "lastCheckedAt": "2026-11-13T16:40:35.608Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": "risposta HTTP 403"
@@ -77,7 +81,7 @@
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/refezione-scolastica",
       "status": "error",
-      "lastCheckedAt": "2026-11-13T16:38:24.628Z",
+      "lastCheckedAt": "2026-11-13T16:40:35.609Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": "risposta HTTP 403"
