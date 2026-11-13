@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "fingerprintVersion": 2,
+  "lastRunAt": "2026-11-13T16:38:26.592Z",
+  "sources": {
+    "inps-auu": {
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.576Z",
+      "title": "Portale Inps - Assegno unico e universale per i figli a carico",
+      "excerpt": "Portale Inps - Assegno unico e universale per i figli a carico it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Co",
+      "contentHash": "fa3be178570fa915d08387a08ea52f7cad4f3d3663647f876100dbd88d63606b",
+      "etag": null,
+      "lastModified": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "reviewedAt": null,
+      "reviewNote": null,
+      "lastError": null
+    },
+    "lombardia-bandi": {
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.626Z",
+      "title": "Home | Bandi e Servizi",
+      "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi",
+      "contentHash": "2ee57bf8ea29657fe77b32101e9f7e30724528be065dc7dcdfefdb58343a6b4c",
+      "etag": null,
+      "lastModified": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "reviewedAt": null,
+      "reviewNote": null,
+      "lastError": null
+    },
+    "inps-adi": {
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.622Z",
+      "title": "Portale Inps - Assegno di Inclusione (ADI)",
+      "excerpt": "Portale Inps - Assegno di Inclusione (ADI) it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Contributi figurativi ",
+      "contentHash": "67e7a943a6be1a331c6d0a64a77c1036c05fa3cce2cef48ef7fae0c5dbb1985e",
+      "etag": null,
+      "lastModified": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "reviewedAt": null,
+      "reviewNote": null,
+      "lastError": null
+    },
+    "milano-refezione": {
+      "status": "error",
+      "lastCheckedAt": "2026-11-13T16:38:24.628Z",
+      "lastError": "risposta HTTP 403"
+    },
+    "milano-quota-nidi": {
+      "status": "error",
+      "lastCheckedAt": "2026-11-13T16:38:24.627Z",
+      "lastError": "risposta HTTP 403"
+    },
+    "arera-bonus-sociale": {
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.624Z",
+      "title": "Arera: Bonus sociali",
+      "excerpt": "Arera: Bonus sociali ITA ITA ENG Seguici su: X Linkedin Youtube Facebook Instagram Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCESSO RACCOLTE DATI Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCES",
+      "contentHash": "588229af3e39c1bf6ff3803351833e7232efe475e743c7291165c8dd49ebe6b9",
+      "etag": null,
+      "lastModified": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "reviewedAt": null,
+      "reviewNote": null,
+      "lastError": null
+    }
+  }
+}

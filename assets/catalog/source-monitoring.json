@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updateMode": "not-configured",
-  "lastRunAt": null,
+  "updateMode": "github-actions",
+  "lastRunAt": "2026-11-13T16:38:26.592Z",
   "pendingReviewCount": 0,
   "sources": [
     {
@@ -11,8 +11,8 @@
       "region": null,
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
-      "status": "unchecked",
-      "lastCheckedAt": null,
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.576Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -24,8 +24,8 @@
       "region": null,
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html",
-      "status": "unchecked",
-      "lastCheckedAt": null,
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.622Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -37,8 +37,8 @@
       "region": null,
       "municipality": null,
       "url": "https://www.arera.it/consumatori/bonus-sociale",
-      "status": "unchecked",
-      "lastCheckedAt": null,
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.624Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -50,8 +50,8 @@
       "region": "Lombardia",
       "municipality": null,
       "url": "https://www.bandi.regione.lombardia.it/servizi/home",
-      "status": "unchecked",
-      "lastCheckedAt": null,
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-13T16:38:24.626Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null
@@ -63,11 +63,11 @@
       "region": "Lombardia",
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva",
-      "status": "unchecked",
-      "lastCheckedAt": null,
+      "status": "error",
+      "lastCheckedAt": "2026-11-13T16:38:24.627Z",
       "pendingReview": false,
       "lastChange": null,
-      "lastError": null
+      "lastError": "risposta HTTP 403"
     },
     {
       "id": "milano-refezione",
@@ -76,11 +76,11 @@
       "region": "Lombardia",
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/refezione-scolastica",
-      "status": "unchecked",
-      "lastCheckedAt": null,
+      "status": "error",
+      "lastCheckedAt": "2026-11-13T16:38:24.628Z",
       "pendingReview": false,
       "lastChange": null,
-      "lastError": null
+      "lastError": "risposta HTTP 403"
     }
   ]
 }
