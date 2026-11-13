@@ -10,6 +10,8 @@ on:
       - "assets/catalog/**"
       - "backend/**"
       - "index.html"
+      - "package.json"
+      - "package-lock.json"
       - "scripts/**"
       - "service-worker.js"
       - "styles.css"
@@ -39,11 +41,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+
+      - name: Installa dipendenze backend
+        run: npm ci
 
       - name: Esegue i test
-        run: node --test backend/source-monitor.test.mjs
+        run: node --test backend/source-monitor.test.mjs backend/staging.test.mjs
 
       - name: Aggiorna il monitoraggio fonti
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
         run: node backend/refresh-sources.mjs
 
       - name: Registra lo stato delle fonti

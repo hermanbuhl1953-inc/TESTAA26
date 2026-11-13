@@ -1,0 +1,9 @@
+{
+  "name": "scadenzario-source-monitor",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "openai": "^7.56.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

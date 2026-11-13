@@ -3,12 +3,19 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getMonitoringStatus, refreshSources } from './backend/source-monitor.mjs';
+import {
+  approveStagingProposal,
+  discardStagingEntry,
+  getStagingEntries,
+  StagingError,
+} from './backend/staging.mjs';
 
 const projectDirectory = path.dirname(fileURLToPath(import.meta.url));
 const backendDirectory = path.join(projectDirectory, 'backend');
 const registryPath = path.join(backendDirectory, 'source-registry.json');
 const sourceStatePath = path.join(backendDirectory, 'data', 'source-state.json');
 const catalogPath = path.join(projectDirectory, 'assets', 'catalog', 'benefits.json');
+const stagingPaths = { registryPath, statePath: sourceStatePath };
 const refreshIntervalMs = 24 * 60 * 60 * 1000;
 const publicRootFiles = new Set(['app.js', 'index.html', 'manifest.webmanifest', 'service-worker.js', 'styles.css']);
 const publicDirectories = new Set(['assets', 'icons']);
@@ -26,6 +33,7 @@ const mimeTypes = {
   '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
 let refreshInProgress = false;
+let stagingMutationInProgress = false;
 
 function sendJson(response, statusCode, value) {
   response.writeHead(statusCode, {
@@ -37,7 +45,7 @@ function sendJson(response, statusCode, value) {
 }
 
 async function refreshAndLog() {
-  if (refreshInProgress) return;
+  if (refreshInProgress || stagingMutationInProgress) return;
   refreshInProgress = true;
   try {
     const result = await refreshSources({ registryPath, statePath: sourceStatePath });
@@ -49,6 +57,59 @@ async function refreshAndLog() {
     console.error(`[fonti] Controllo non completato: ${error.message}`);
   } finally {
     refreshInProgress = false;
+  }
+}
+
+function assertSameOrigin(request) {
+  const origin = request.headers.origin;
+  const hostHeader = request.headers.host;
+  if (typeof origin !== 'string' || typeof hostHeader !== 'string'
+    || request.headers['sec-fetch-site'] === 'cross-site') {
+    throw new StagingError('Richiesta di modifica non autorizzata.', 403);
+  }
+  let originUrl;
+  try {
+    originUrl = new URL(origin);
+  } catch {
+    throw new StagingError('Origine della richiesta non valida.', 403);
+  }
+  const allowedProtocols = process.env.HOST
+    ? new Set(['http:', 'https:'])
+    : new Set(['http:']);
+  if (!allowedProtocols.has(originUrl.protocol)
+    || originUrl.host !== hostHeader.toLowerCase()
+    || originUrl.username || originUrl.password) {
+    throw new StagingError('Richiesta di modifica fuori origine.', 403);
+  }
+}
+
+async function readJsonBody(request) {
+  if (!/^application\/json(?:\s*;|$)/i.test(request.headers['content-type'] ?? '')) {
+    throw new StagingError('Content-Type application/json richiesto.', 415);
+  }
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > 8 * 1024) throw new StagingError('Richiesta oltre il limite consentito.', 413);
+    chunks.push(chunk);
+  }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    throw new StagingError('Corpo JSON non valido.');
+  }
+}
+
+async function runStagingMutation(operation) {
+  if (refreshInProgress || stagingMutationInProgress) {
+    throw new StagingError('Monitoraggio o revisione già in corso; riprova tra poco.', 409);
+  }
+  stagingMutationInProgress = true;
+  try {
+    return await operation();
+  } finally {
+    stagingMutationInProgress = false;
   }
 }
 
@@ -115,9 +176,43 @@ const server = createServer(async (request, response) => {
     }
     return;
   }
+  if (request.method === 'GET' && requestUrl.pathname === '/api/staging') {
+    try {
+      sendJson(response, 200, { items: await getStagingEntries(stagingPaths) });
+    } catch (error) {
+      console.error(`[api] Coda staging non disponibile: ${error.message}`);
+      sendJson(response, error instanceof StagingError ? error.statusCode : 500, {
+        error: error instanceof StagingError ? error.message : 'Coda staging temporaneamente non disponibile.',
+      });
+    }
+    return;
+  }
+  if (request.method === 'POST'
+    && ['/api/staging/approve', '/api/staging/discard'].includes(requestUrl.pathname)) {
+    try {
+      assertSameOrigin(request);
+      const body = await readJsonBody(request);
+      if (!body || typeof body !== 'object' || Array.isArray(body)
+        || Object.keys(body).length !== 1 || typeof body.sourceId !== 'string'
+        || !/^[a-z0-9-]{1,100}$/.test(body.sourceId)) {
+        throw new StagingError('sourceId non valido.');
+      }
+      const result = await runStagingMutation(() => requestUrl.pathname === '/api/staging/approve'
+        ? approveStagingProposal({ ...stagingPaths, catalogPath, sourceId: body.sourceId })
+        : discardStagingEntry({ ...stagingPaths, sourceId: body.sourceId }));
+      sendJson(response, 200, result);
+    } catch (error) {
+      const statusCode = error instanceof StagingError ? error.statusCode : 500;
+      if (statusCode >= 500) console.error(`[api] Revisione staging non riuscita: ${error.message}`);
+      sendJson(response, statusCode, {
+        error: error instanceof StagingError ? error.message : 'Revisione staging non riuscita.',
+      });
+    }
+    return;
+  }
   if (requestUrl.pathname.startsWith('/api/')) {
     if (request.method !== 'GET') {
-      response.writeHead(405, { allow: 'GET', 'cache-control': 'no-store' }).end();
+      response.writeHead(405, { allow: 'GET, POST', 'cache-control': 'no-store' }).end();
       return;
     }
     sendJson(response, 404, { error: 'Endpoint non trovato.' });

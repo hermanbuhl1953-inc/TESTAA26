@@ -3,6 +3,7 @@ const CATALOG_URL = './assets/catalog/deadlines.json';
 const BONUS_CATALOG_URL = './assets/catalog/benefits.json';
 const BONUS_API_URL = './api/benefits';
 const SOURCE_MONITORING_API_URL = './api/monitoring';
+const STAGING_API_URL = './api/staging';
 const PROFILE_LABELS = {
   single: 'Single',
   coppia: 'Coppia',
@@ -59,6 +60,9 @@ let bonusCatalogUpdatedAt = null;
 let bonusCatalogMode = 'local';
 let sourceMonitoring = null;
 let sourceMonitoringError = null;
+let stagingEntries = null;
+let stagingError = null;
+let stagingBusyId = null;
 let currentView = 'home';
 let selectedHomeDate = dateToIso(dateOnly(new Date()));
 let selectedCalendarDate = dateToIso(dateOnly(new Date()));
@@ -803,6 +807,7 @@ function renderSourceMonitoring() {
       baseline: 'prima verifica completata',
       changed: 'variazione da rivedere',
       error: `errore: ${source.lastError || 'controllo non riuscito'}`,
+      'error-ai': `errore estrazione AI: ${source.lastError || 'revisione manuale necessaria'}`,
       unchecked: 'non ancora controllata',
       unchanged: 'nessuna variazione rilevata',
     };
@@ -813,7 +818,12 @@ function renderSourceMonitoring() {
     const changePreview = source.pendingReview && source.lastChange?.excerpt
       ? `<small>Anteprima da verificare: ${escapeHtml(source.lastChange.excerpt)}</small>`
       : '';
-    return `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.label)}</a><span>${escapeHtml(label)} · ${escapeHtml(dateLabel)}</span>${changePreview}</li>`;
+    const pdfStatus = source.pdfError
+      ? `<small>PDF non analizzato: ${escapeHtml(source.pdfError)}</small>`
+      : source.lastPdfAnalyzed?.analyzedAt
+        ? `<small>Ultimo PDF letto: ${escapeHtml(new Intl.DateTimeFormat('it-IT', { dateStyle: 'short' }).format(new Date(source.lastPdfAnalyzed.analyzedAt)))}</small>`
+        : '';
+    return `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.label)}</a><span>${escapeHtml(label)} · ${escapeHtml(dateLabel)}</span>${changePreview}${pdfStatus}</li>`;
   }).join('');
   return `
     <section class="source-monitoring" aria-labelledby="source-monitoring-title">
@@ -823,6 +833,58 @@ function renderSourceMonitoring() {
       <p>Il servizio rileva cambiamenti alle pagine; non aggiorna automaticamente requisiti o agevolazioni. Ogni variazione deve essere verificata prima di modificare il catalogo.</p>
       <ul>${sourceRows}</ul>
     </section>`;
+}
+
+function renderStagingReview() {
+  if (bonusCatalogMode !== 'backend') {
+    return `<section class="staging-panel"><div class="notice warning">${icon('info')} Revisione staging disponibile solo con il backend locale: avvia <code>node server.mjs</code>. La copia statica non può approvare o scartare proposte.</div></section>`;
+  }
+  if (stagingError) {
+    return `<section class="staging-panel"><div class="notice error">${icon('info')} Coda di revisione non disponibile: ${escapeHtml(stagingError)}.</div><button class="button button-quiet" type="button" data-action="reload-staging">Riprova</button></section>`;
+  }
+  if (stagingEntries === null) {
+    return `<section class="staging-panel"><p class="planner-empty">Caricamento delle proposte in revisione…</p></section>`;
+  }
+  const cards = stagingEntries.map((entry) => {
+    const proposal = entry.pendingProposal;
+    const region = entry.region ? ` · ${escapeHtml(entry.region)}` : '';
+    const municipality = entry.municipality ? ` · ${escapeHtml(entry.municipality)}` : '';
+    const scope = `${escapeHtml(entry.scope)}${region}${municipality}`;
+    const changedAt = entry.lastCheckedAt
+      ? formatDate(entry.lastCheckedAt.slice(0, 10), { day: 'numeric', month: 'long', year: 'numeric' })
+      : 'data non disponibile';
+    const sourceLink = typeof entry.sourceUrl === 'string' && entry.sourceUrl.startsWith('https://')
+      ? `<a href="${escapeHtml(entry.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.sourceLabel)} — apri la fonte ufficiale</a>`
+      : '';
+    const proposalContent = proposal && typeof proposal === 'object'
+      ? `<div class="staging-proposal">
+          <h4>${escapeHtml(proposal.title)}</h4>
+          <p>${escapeHtml(proposal.description)}</p>
+          <p class="benefit-meta">${scope}${proposal.iseeMaxCents === null ? '' : ` · ISEE max ${escapeHtml(formatAmount(proposal.iseeMaxCents))}`}</p>
+          ${proposal.requirements?.length ? `<p><strong>Requisiti estratti:</strong> ${proposal.requirements.map(escapeHtml).join('; ')}</p>` : ''}
+          ${proposal.startsAt || proposal.endsAt ? `<p class="benefit-meta">Periodo: ${proposal.startsAt ? escapeHtml(formatDate(proposal.startsAt, { day: 'numeric', month: 'short', year: 'numeric' })) : 'non indicato'} – ${proposal.endsAt ? escapeHtml(formatDate(proposal.endsAt, { day: 'numeric', month: 'short', year: 'numeric' })) : 'non indicato'}</p>` : ''}
+        </div>`
+      : `<p class="staging-manual-note">È stata rilevata una modifica, ma non è disponibile una bozza AI. Verifica la pagina originale prima di decidere.</p>`;
+    const status = entry.aiError
+      ? `Bozza non disponibile: ${escapeHtml(entry.aiError)}`
+      : proposal ? 'Bozza AI: da verificare' : 'Revisione manuale';
+    const isBusy = stagingBusyId === entry.sourceId;
+    return `<article class="benefit-card staging-card">
+      <div class="staging-card-heading"><div><span class="staging-badge">${escapeHtml(status)}</span><h3>${escapeHtml(proposal?.title || entry.sourceLabel)}</h3></div><span class="benefit-meta">Controllato il ${escapeHtml(changedAt)}</span></div>
+      ${proposalContent}
+      ${entry.lastChange?.excerpt ? `<p class="staging-excerpt"><strong>Variazione rilevata:</strong> ${escapeHtml(entry.lastChange.excerpt)}</p>` : ''}
+      ${sourceLink}
+      <div class="staging-actions">
+        ${proposal ? `<button class="button button-primary" type="button" data-action="approve-staging" data-source-id="${escapeHtml(entry.sourceId)}" ${isBusy ? 'disabled' : ''}>Approva e pubblica nel catalogo</button>` : ''}
+        <button class="button button-quiet" type="button" data-action="discard-staging" data-source-id="${escapeHtml(entry.sourceId)}" ${isBusy ? 'disabled' : ''}>Scarta</button>
+      </div>
+    </article>`;
+  }).join('');
+  return `<section class="staging-panel" aria-labelledby="staging-title">
+    <div class="section-heading"><div><h2 id="staging-title">Proposte da revisionare</h2><p>${stagingEntries.length} ${stagingEntries.length === 1 ? 'elemento in' : 'elementi in'} staging</p></div><button class="button button-quiet" type="button" data-action="reload-staging" ${stagingBusyId ? 'disabled' : ''}>Aggiorna</button></div>
+    <div class="notice warning staging-warning">${icon('info')} <strong>Dati di staging, non verificati.</strong> Controlla la fonte ufficiale e requisiti, importi e scadenze. Approvando confermi la revisione e inserisci la voce nel catalogo; lo scarto rimuove l’elemento dalla coda.</div>
+    ${stagingEntries.length ? `<div class="staging-list">${cards}</div>` : '<div class="empty-state"><span class="empty-icon">✓</span><h3>Nessuna proposta in attesa</h3><p>Le nuove variazioni rilevate compariranno qui per la revisione.</p></div>'}
+  </section>`;
 }
 
 function renderBenefits() {
@@ -862,6 +924,7 @@ function renderBenefits() {
       <button class="button button-primary" type="submit">Cerca agevolazioni</button>
       <p class="planner-empty">Se non hai un ISEE valido, lascia il campo vuoto: le misure con soglia ISEE non saranno mostrate. L'importo resta solo in memoria finché la pagina è aperta. Non caricare il documento ISEE.</p>
     </form>
+    ${renderStagingReview()}
     ${bonusCatalogError
       ? `<div class="notice error">${icon('info')} Catalogo non disponibile: ${escapeHtml(bonusCatalogError)}. Riprova quando il file dei dati è raggiungibile.</div>`
       : bonusCatalog.length === 0
@@ -1192,6 +1255,7 @@ function handleClick(event) {
     case 'navigate':
       currentView = button.dataset.view;
       render();
+      if (currentView === 'benefits' && bonusCatalogMode === 'backend') void loadStaging();
       break;
     case 'new-deadline':
       openDeadlineForm(null, button.dataset.date ? { dueDate: button.dataset.date } : {});
@@ -1237,6 +1301,15 @@ function handleClick(event) {
       break;
     case 'reload-catalog':
       loadCatalog();
+      break;
+    case 'reload-staging':
+      loadStaging();
+      break;
+    case 'approve-staging':
+      resolveStagingEntry(button.dataset.sourceId, 'approve');
+      break;
+    case 'discard-staging':
+      resolveStagingEntry(button.dataset.sourceId, 'discard');
       break;
     case 'remove-income':
       planner.incomes = planner.incomes.filter((income) => income.id !== id);
@@ -1449,12 +1522,80 @@ async function loadBonusCatalog() {
     bonusCatalogError = error.message;
     console.error('Caricamento catalogo agevolazioni non riuscito:', error);
   }
+  await loadStaging({ renderAfter: false });
   render();
+}
+
+async function loadStaging({ renderAfter = true } = {}) {
+  if (bonusCatalogMode !== 'backend') {
+    stagingEntries = [];
+    stagingError = null;
+    if (renderAfter) render();
+    return;
+  }
+  try {
+    const response = await fetch(STAGING_API_URL, { cache: 'no-store' });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || `risposta HTTP ${response.status}`);
+    if (!payload || !Array.isArray(payload.items)
+      || payload.items.some((entry) => !entry || typeof entry.sourceId !== 'string'
+        || typeof entry.sourceLabel !== 'string' || typeof entry.sourceUrl !== 'string'
+        || (entry.pendingProposal !== null && (typeof entry.pendingProposal !== 'object'
+          || Array.isArray(entry.pendingProposal))))) {
+      throw new Error('risposta staging non valida');
+    }
+    stagingEntries = payload.items;
+    stagingError = null;
+  } catch (error) {
+    stagingEntries = null;
+    stagingError = error.message;
+    console.error('Caricamento coda staging non riuscito:', error);
+  }
+  if (renderAfter) render();
+}
+
+async function resolveStagingEntry(sourceId, action) {
+  if (!sourceId || stagingBusyId) return;
+  const entry = stagingEntries?.find((item) => item.sourceId === sourceId);
+  if (!entry) {
+    showToast('La proposta non è più disponibile. Aggiorna la coda.', true);
+    await loadStaging();
+    return;
+  }
+  if (action === 'approve' && !entry.pendingProposal) return;
+  const confirmation = action === 'approve'
+    ? `Hai verificato sulla fonte ufficiale requisiti, importi e scadenze di “${entry.pendingProposal.title}” e vuoi pubblicarla nel catalogo?`
+    : `Scartare la variazione di “${entry.sourceLabel}” dalla coda di revisione?`;
+  if (!window.confirm(confirmation)) return;
+
+  stagingBusyId = sourceId;
+  render();
+  try {
+    const endpoint = action === 'approve' ? 'approve' : 'discard';
+    const response = await fetch(`${STAGING_API_URL}/${endpoint}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ sourceId }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || `risposta HTTP ${response.status}`);
+    showToast(action === 'approve'
+      ? 'Proposta approvata e aggiunta al catalogo.'
+      : 'Variazione rimossa dalla coda.');
+    await loadBonusCatalog();
+  } catch (error) {
+    stagingError = error.message;
+    showToast(`Revisione non riuscita: ${error.message}`, true);
+    await loadStaging();
+  } finally {
+    stagingBusyId = null;
+    render();
+  }
 }
 
 function validateMonitoringStatus(monitoring) {
   const allowedModes = ['github-actions', 'local-server', 'not-configured'];
-  const allowedStatuses = ['baseline', 'changed', 'error', 'unchecked', 'unchanged'];
+  const allowedStatuses = ['baseline', 'changed', 'error', 'error-ai', 'unchecked', 'unchanged'];
   if (!monitoring || monitoring.schemaVersion !== 1
     || !allowedModes.includes(monitoring.updateMode)
     || (monitoring.lastRunAt !== null

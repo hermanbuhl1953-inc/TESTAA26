@@ -3,6 +3,7 @@
 .pub-cache/
 .pub/
 build/
+node_modules/
 .flutter-plugins
 .flutter-plugins-dependencies
 .idea/

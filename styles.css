@@ -226,6 +226,19 @@ button { cursor: pointer; }
 .source-monitoring a { color: var(--green); font-weight: 650; text-decoration: none; }
 .benefit-card .benefit-meta { color: var(--text-muted); font-size: 10px; }
 .benefit-card a { color: var(--green); font-size: 11px; }
+.staging-panel { margin-top: 24px; }
+.staging-list { display: grid; gap: 10px; }
+.staging-card { border-color: #ebdfc6; }
+.staging-card h3 { margin: 7px 0 0; }
+.staging-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.staging-badge { display: inline-flex; padding: 4px 8px; border-radius: 20px; color: #80531c; background: #fff6e8; font-size: 9px; font-weight: 750; }
+.staging-proposal { margin-top: 12px; padding: 12px; border-radius: 11px; background: #f7f9f7; }
+.staging-proposal h4 { margin: 0 0 7px; color: #1c3c33; font-size: 12px; }
+.staging-excerpt, .staging-manual-note { margin: 11px 0; color: #65796f; font-size: 10px; line-height: 1.55; }
+.staging-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+.staging-warning { margin-bottom: 12px; }
+.staging-panel .empty-state { margin-top: 12px; }
+.button:disabled { cursor: wait; opacity: .6; transform: none; }
 
 @media (max-width: 760px) {
   body { background: #f7f9f7; }

@@ -4,15 +4,23 @@ Prototipo web installabile (PWA) per organizzare le scadenze personali, senza in
 
 ## Avvio con monitoraggio automatico delle fonti
 
-1. Installa Node.js 18 o successivo, se non è già disponibile.
+1. Installa Node.js 22.3 o successivo, se non è già disponibile.
 2. Apri questa cartella in Visual Studio Code e un terminale PowerShell.
-3. Esegui:
+3. Installa le dipendenze backend:
+
+```powershell
+npm ci
+```
+
+4. Esegui:
 
 ```powershell
 node server.mjs
 ```
 
-4. Visita `http://127.0.0.1:4173`. Il servizio controlla le fonti ufficiali all'avvio e poi ogni 24 ore, finché resta in esecuzione.
+Il server funziona anche senza configurare OpenAI; per abilitare l'estrazione AI in locale, configura `OPENAI_API_KEY` nell'ambiente del processo prima dell'avvio.
+
+5. Visita `http://127.0.0.1:4173`. Il servizio controlla le fonti ufficiali all'avvio e poi ogni 24 ore, finché resta in esecuzione.
 
 Con **Live Server** o `python -m http.server` la PWA continua a funzionare con il catalogo locale, ma non ha API né monitoraggio automatico. Non aprire `index.html` con doppio clic se vuoi usare il catalogo o installare la PWA: i browser limitano queste funzioni sui file `file://`.
 
@@ -23,6 +31,7 @@ Per fermare il servizio usa `Ctrl+C` nel terminale. Per avere controlli anche qu
 È predisposto `.github/workflows/pages.yml`; sul branch predefinito `main`, il workflow:
 
 - esegue i test e controlla le fonti all'avvio, su richiesta e una volta al giorno;
+- se è configurato il secret Actions `OPENAI_API_KEY`, invia a OpenAI il testo estratto da pagine e PDF solo quando rileva una variazione e salva la proposta AI nello stato privato; senza il secret resta attiva la revisione manuale;
 - salva il risultato pubblico in `assets/catalog/source-monitoring.json` e lo stato necessario al controllo successivo in `backend/data/source-state.json`;
 - pubblica su GitHub Pages solo l'app e i cataloghi pubblici, senza esporre la cartella `backend`, quando la pubblicazione è abilitata.
 
@@ -33,8 +42,12 @@ I risultati pubblicati sono uno snapshot: l'applicazione resta statica; GitHub A
 ## Controllo delle fonti e revisione
 
 - Il registro iniziale controlla pagine ufficiali INPS e ARERA, il portale bandi della Lombardia e due pagine del Comune di Milano.
-- Il sistema confronta il contenuto leggibile delle pagine e segnala eventuali cambiamenti; non estrae o pubblica automaticamente nuovi bonus, requisiti, importi o scadenze.
-- Una variazione va aperta sulla fonte ufficiale e verificata da una persona. Dopo l'eventuale aggiornamento manuale di `assets/catalog/benefits.json`, registra la revisione:
+- Il sistema confronta il contenuto delle pagine e, solo se rileva un cambiamento e `OPENAI_API_KEY` è configurata, usa lo SDK OpenAI con Structured Outputs JSON Schema per generare una proposta in `pendingProposal` dentro `backend/data/source-state.json`. Configura `OPENAI_API_KEY` come secret GitHub Actions; `OPENAI_MODEL` è una variabile facoltativa (predefinito `gpt-4o-mini`). In locale, definisci `OPENAI_API_KEY` nell'ambiente prima di avviare Node.
+- Con il backend attivo, la sezione **Bonus e agevolazioni** mostra la coda staging. `GET /api/staging` restituisce le variazioni in attesa; `POST /api/staging/approve` aggiunge una bozza al catalogo dopo una conferma esplicita, mentre `POST /api/staging/discard` rimuove la voce dalla coda. La conferma richiede una verifica sulla fonte: la data di approvazione viene registrata come ultima verifica. Le API di scrittura richiedono origine same-site e il server ascolta in locale per impostazione predefinita.
+- Il monitor estrae anche i link `.pdf` HTTPS sullo stesso host della pagina (fino a cinque per fonte) e supporta fonti che sono direttamente PDF. Ogni download ha timeout di 15 secondi e limite di 10 MB; il testo viene passato all'estrazione AI solo quando il PDF è nuovo o cambia. L'hash e l'ultimo esito sono registrati in `pdfDocuments`/`lastPdfAnalyzed`; file identici non vengono riparsati. I link verso host diversi vengono ignorati per sicurezza.
+- Il testo della pagina è inviato a OpenAI solo per l'estrazione; l'uso dell'API può comportare costi secondo il piano OpenAI. Non inviare la chiave API nel codice o in chat. Le istruzioni eventualmente presenti nella pagina sono trattate come dati non attendibili. L'ambito e la fonte della proposta vengono vincolati al registro, le date non accertate restano null e `lastVerifiedAt` resta null.
+- La proposta è solo staging: non viene aggiunta o pubblicata automaticamente in `assets/catalog/benefits.json`. Una persona deve confrontarla con la fonte ufficiale; dopo la verifica può approvarla dalla UI locale, oppure aggiornare il catalogo manualmente. Senza chiave, con errore di quota o risposta non valida, la variazione resta in revisione manuale con stato `error-ai` (quando il provider è configurato ma fallisce).
+- Una variazione va aperta sulla fonte ufficiale e verificata da una persona. Se la revisione viene svolta fuori dalla UI, dopo l'eventuale aggiornamento manuale di `assets/catalog/benefits.json` registra l'esito:
 
 ```powershell
 node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sulla pagina ufficiale"
@@ -56,6 +69,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 - proiezione indicativa a 12 mesi con saldo iniziale, riserva, entrate ricorrenti e scadenze registrate
 - ricerca territoriale di agevolazioni tramite catalogo JSON e API locale; l'ISEE è facoltativo e non viene inviato al servizio. Include le prime misure nazionali verificate su INPS e la revisione della quota nidi 2026/27 del Comune di Milano. La copertura regionale e comunale resta parziale
 - controllo giornaliero delle modifiche alle prime fonti ufficiali nazionali e lombardo-milanesi, con coda di revisione umana e senza pubblicazione automatica delle variazioni
+- lettura testuale dei PDF collegati alle fonti, con limiti di download e deduplicazione tramite hash
 - esportazione e ripristino di un backup JSON
 - installazione come PWA e uso offline dopo il primo caricamento, se supportato dal browser
 - notifiche del browser facoltative: funzionano mentre la pagina/app è aperta, non sono affidabili a browser chiuso
@@ -70,7 +84,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 - Le voci del catalogo sono promemoria generici, non consulenza fiscale o legale: verifica date e periodicità con fonti ufficiali e personalizza i suggerimenti prima di salvarli.
 - La proiezione considera soltanto gli importi registrati nelle scadenze attive e le entrate inserite; le scadenze arretrate sono conteggiate come uscite immediate. Non include spese quotidiane o movimenti non modellati e non è una previsione finanziaria certa.
 - Le agevolazioni mostrate sono solo piste da verificare: l'ISEE non basta a determinare un diritto. Il catalogo `assets/catalog/benefits.json` è parziale e non copre i bandi di tutti i Comuni e le Regioni; aggiungere voci solo con fonte ufficiale e data di verifica. La revisione della quota nidi di Milano è una procedura su domanda, non un contributo automatico.
-- QR PagoPA, OCR, AI, condivisione file, account e sincronizzazione non sono ancora implementati.
+- QR PagoPA, OCR, revisione AI automatica e pubblicazione di proposte, condivisione file, account e sincronizzazione non sono implementati.
 
 ## Struttura web
 
@@ -84,8 +98,13 @@ assets/catalog/deadlines.json
 assets/catalog/benefits.json
 backend/source-registry.json
 backend/source-monitor.mjs
+backend/benefit-extractor.mjs
+backend/pdf-parser.mjs
+backend/benefit-extractor.mjs
 backend/resolve-source-change.mjs
 backend/refresh-sources.mjs
+package.json
+package-lock.json
 server.mjs
 scripts/build-pages.mjs
 .github/workflows/pages.yml
