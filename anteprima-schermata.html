@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anteprima Scadenzario</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #18332f;
+      background: #e9efec;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+      background:
+        radial-gradient(ellipse at 50% 12%, #f9fcfa 0, transparent 58%),
+        #e9efec;
+    }
+
+    .device {
+      width: min(390px, 100%);
+      height: 844px;
+      max-height: calc(100vh - 40px);
+      min-height: 700px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 8px solid #20352f;
+      border-radius: 40px;
+      background: #f7f9f7;
+      box-shadow: 0 28px 75px #213c302e, 0 3px 12px #20352f24;
+    }
+
+    .status {
+      height: 38px;
+      flex: 0 0 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #20352f;
+      background: #f7f9f7;
+    }
+
+    .status-icons { display: flex; align-items: center; gap: 6px; }
+    .signal { display: inline-flex; align-items: end; gap: 2px; height: 12px; }
+    .signal i { display: block; width: 3px; border-radius: 2px; background: #20352f; }
+    .signal i:nth-child(1) { height: 4px; }
+    .signal i:nth-child(2) { height: 7px; }
+    .signal i:nth-child(3) { height: 10px; }
+    .signal i:nth-child(4) { height: 12px; }
+    .battery { width: 18px; height: 9px; border: 1.5px solid #20352f; border-radius: 3px; padding: 1px; }
+    .battery::after { content: ""; display: block; height: 100%; width: 72%; border-radius: 1px; background: #20352f; }
+
+    main { flex: 1; overflow: auto; padding: 10px 20px 20px; scrollbar-width: none; }
+    main::-webkit-scrollbar { display: none; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 22px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 38px; height: 38px; display: grid; place-items: center;
+      border-radius: 13px; color: white; background: #176b57;
+    }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand-name { font-size: 18px; font-weight: 750; letter-spacing: -.5px; }
+    .profile {
+      width: 38px; height: 38px; display: grid; place-items: center;
+      border: 1px solid #dfe8e3; border-radius: 50%; color: #176b57;
+      background: #e7f2ed; font-size: 13px; font-weight: 700;
+    }
+
+    .greeting { margin: 0; color: #71817b; font-size: 13px; }
+    h1 { margin: 5px 0 18px; font-size: 27px; letter-spacing: -.8px; line-height: 1.15; }
+
+    .summary {
+      position: relative; overflow: hidden; padding: 18px;
+      border-radius: 22px; color: white; background: #176b57;
+      box-shadow: 0 10px 22px #176b5729;
+    }
+    .summary::after {
+      content: ""; position: absolute; width: 150px; height: 150px; right: -40px; top: -63px;
+      border-radius: 50%; background: #ffffff10;
+    }
+    .summary-label { margin: 0 0 8px; color: #d3ebe1; font-size: 13px; }
+    .summary-value { margin: 0; font-size: 30px; font-weight: 750; letter-spacing: -.7px; }
+    .summary-foot { display: flex; align-items: center; gap: 7px; margin-top: 12px; color: #e5f2ec; font-size: 12px; }
+    .summary-foot span { width: 7px; height: 7px; border-radius: 50%; background: #f5bb60; }
+
+    .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 23px 0 12px; }
+    .section-heading h2 { margin: 0; font-size: 17px; letter-spacing: -.25px; }
+    .section-heading button { padding: 0; border: 0; color: #176b57; background: transparent; font: inherit; font-size: 12px; font-weight: 650; }
+
+    .date-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+    .date-cell {
+      display: grid; justify-items: center; gap: 5px; padding: 10px 2px 9px;
+      border: 1px solid #e6ece8; border-radius: 16px; background: #fff;
+    }
+    .date-cell .day { color: #83918b; font-size: 10px; font-weight: 650; text-transform: uppercase; }
+    .date-cell .number { font-size: 15px; font-weight: 700; }
+    .date-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+    .date-cell.has-event .dot { background: #e6a644; }
+    .date-cell.selected { border-color: #176b57; color: white; background: #176b57; box-shadow: 0 4px 10px #176b5729; }
+    .date-cell.selected .day { color: #d1e8dd; }
+    .date-cell.selected .dot { background: #ffd178; }
+
+    .deadline-list { display: grid; gap: 9px; }
+    .deadline {
+      display: grid; grid-template-columns: 43px 1fr auto; align-items: center; gap: 11px;
+      padding: 12px; border: 1px solid #e8eeea; border-radius: 17px; background: #fff;
+    }
+    .date-icon {
+      width: 43px; height: 43px; display: grid; align-content: center; justify-items: center;
+      border-radius: 14px; color: #176b57; background: #eaf3ef;
+    }
+    .date-icon svg { width: 19px; height: 19px; margin-bottom: 1px; }
+    .date-icon small { font-size: 8px; font-weight: 750; text-transform: uppercase; }
+    .deadline-title { margin: 0 0 4px; font-size: 13px; font-weight: 700; }
+    .deadline-meta { margin: 0; color: #82908a; font-size: 10px; }
+    .deadline-amount { align-self: start; padding-top: 2px; color: #37534b; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .deadline.urgent .date-icon { color: #a36116; background: #fff2df; }
+
+    .bottom {
+      flex: 0 0 auto; display: grid; grid-template-columns: repeat(3, 1fr);
+      padding: 10px 12px 12px; border-top: 1px solid #e8eeea; background: #fff;
+    }
+    .nav-item { display: grid; justify-items: center; gap: 4px; color: #91a099; font-size: 9px; font-weight: 600; }
+    .nav-item svg { width: 19px; height: 19px; }
+    .nav-item.active { color: #176b57; }
+
+    .caption { margin-top: 17px; color: #71817b; font-size: 12px; text-align: center; }
+    @media (max-height: 760px) {
+      .device { min-height: 0; }
+      .summary { padding: 14px; }
+      .section-heading { margin-top: 17px; }
+      .deadline { padding: 9px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <article class="device" aria-label="Anteprima schermata principale dell'app Scadenzario">
+      <div class="status">
+        <span>9:41</span>
+        <span class="status-icons" aria-hidden="true">
+          <span class="signal"><i></i><i></i><i></i><i></i></span>
+          <svg width="15" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 4.2C4.8.8 11.2.8 15 4.2L8 11 1 4.2Z" fill="#20352F"/></svg>
+          <span class="battery"></span>
+        </span>
+      </div>
+      <main>
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="5" width="16" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6"></path>
+              </svg>
+            </span>
+            <span class="brand-name">Scadenzario</span>
+          </div>
+          <span class="profile" aria-label="Profilo Angelo">AG</span>
+        </header>
+
+        <p class="greeting">Venerdì 13 novembre</p>
+        <h1>Ciao Angelo,<br>tutto sotto controllo.</h1>
+
+        <section class="summary" aria-label="Riepilogo">
+          <p class="summary-label">Le tue prossime scadenze</p>
+          <p class="summary-value">4 da gestire</p>
+          <div class="summary-foot"><span></span> Una richiede attenzione questa settimana</div>
+        </section>
+
+        <div class="section-heading">
+          <h2>Novembre</h2>
+          <button type="button">Apri calendario</button>
+        </div>
+        <section class="date-strip" aria-label="Giorni selezionati di novembre">
+          <div class="date-cell"><span class="day">Gio</span><span class="number">12</span><i class="dot"></i></div>
+          <div class="date-cell selected has-event"><span class="day">Ven</span><span class="number">13</span><i class="dot"></i></div>
+          <div class="date-cell"><span class="day">Sab</span><span class="number">14</span><i class="dot"></i></div>
+          <div class="date-cell has-event"><span class="day">Dom</span><span class="number">15</span><i class="dot"></i></div>
+          <div class="date-cell"><span class="day">Lun</span><span class="number">16</span><i class="dot"></i></div>
+        </section>
+
+        <div class="section-heading">
+          <h2>In arrivo</h2>
+          <button type="button">Vedi tutte</button>
+        </div>
+        <section class="deadline-list" aria-label="Elenco scadenze imminenti">
+          <article class="deadline urgent">
+            <span class="date-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4zM8 4v6M16 4v6M4 12h16"/></svg>
+              <small>15 nov</small>
+            </span>
+            <div><p class="deadline-title">Bolletta luce</p><p class="deadline-meta">Casa · Tra 2 giorni</p></div>
+            <span class="deadline-amount">€ 86,40</span>
+          </article>
+          <article class="deadline">
+            <span class="date-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4zM8 4v6M16 4v6M4 12h16"/></svg>
+              <small>18 nov</small>
+            </span>
+            <div><p class="deadline-title">Rata assicurazione auto</p><p class="deadline-meta">Auto · Tra 5 giorni</p></div>
+            <span class="deadline-amount">€ 124,00</span>
+          </article>
+          <article class="deadline">
+            <span class="date-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4zM8 4v6M16 4v6M4 12h16"/></svg>
+              <small>24 nov</small>
+            </span>
+            <div><p class="deadline-title">Visita dentistica</p><p class="deadline-meta">Salute · Tra 11 giorni</p></div>
+            <span class="deadline-amount"></span>
+          </article>
+        </section>
+      </main>
+      <nav class="bottom" aria-label="Navigazione principale">
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z"/></svg>
+          <span>Home</span>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+          <span>Calendario</span>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+          <span>Profilo</span>
+        </div>
+      </nav>
+    </article>
+    <p class="caption">Anteprima grafica — dati e azioni sono dimostrativi.</p>
+  </div>
+</body>
+</html>

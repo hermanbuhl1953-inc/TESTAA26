@@ -1,0 +1,202 @@
+[
+  {
+    "id": "a03",
+    "categoria": "auto",
+    "titolo": "Assicurazione RC auto",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 15, 7, 1],
+    "giorni_suggeriti": 60,
+    "nota": "Verifica la data riportata sulla polizza e le condizioni del contratto."
+  },
+  {
+    "id": "a04",
+    "categoria": "auto",
+    "titolo": "Bollo auto",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 30,
+    "nota": "Scadenze e importi possono dipendere dalla regione e dal veicolo: verifica la fonte ufficiale."
+  },
+  {
+    "id": "a05",
+    "categoria": "auto",
+    "titolo": "Manutenzione auto",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 7],
+    "giorni_suggeriti": 365,
+    "nota": "Imposta la data secondo il piano di manutenzione del veicolo."
+  },
+  {
+    "id": "a06",
+    "categoria": "auto",
+    "titolo": "Revisione del veicolo",
+    "mesi": 24,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 60,
+    "nota": "La periodicità dipende dal tipo e dall'età del veicolo: verifica la scadenza effettiva."
+  },
+  {
+    "id": "f01",
+    "categoria": "fisco",
+    "titolo": "Scadenza IVA",
+    "mesi": 3,
+    "profili": ["professionista"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 45,
+    "nota": "Periodicità e date dipendono dal regime fiscale: verifica il calendario ufficiale o il tuo consulente."
+  },
+  {
+    "id": "f02",
+    "categoria": "fisco",
+    "titolo": "Adempimento fiscale personale",
+    "mesi": 0,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 30,
+    "nota": "Voce generica: inserisci la data effettiva verificata per la tua situazione."
+  },
+  {
+    "id": "c02",
+    "categoria": "casa",
+    "titolo": "Bollette luce e gas",
+    "mesi": 2,
+    "profili": ["single", "coppia", "famiglia", "anziano"],
+    "promemoria": [15, 7, 3],
+    "giorni_suggeriti": 20,
+    "nota": "Personalizza la ricorrenza secondo le bollette del tuo fornitore."
+  },
+  {
+    "id": "c03",
+    "categoria": "casa",
+    "titolo": "Rata condominiale",
+    "mesi": 3,
+    "profili": ["coppia", "famiglia", "anziano"],
+    "promemoria": [15, 7, 1],
+    "giorni_suggeriti": 30,
+    "nota": "Adatta data e ricorrenza al piano rate approvato dal condominio."
+  },
+  {
+    "id": "c04",
+    "categoria": "casa",
+    "titolo": "Controllo caldaia",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano"],
+    "promemoria": [30, 7],
+    "giorni_suggeriti": 60,
+    "nota": "Gli obblighi e gli intervalli dipendono dall'impianto e dalle regole locali."
+  },
+  {
+    "id": "b04",
+    "categoria": "banca",
+    "titolo": "Pagamento rata mutuo",
+    "mesi": 1,
+    "profili": ["coppia", "famiglia", "anziano"],
+    "promemoria": [7, 1],
+    "giorni_suggeriti": 10,
+    "nota": "Controlla la data di addebito e la disponibilità sul conto."
+  },
+  {
+    "id": "b05",
+    "categoria": "banca",
+    "titolo": "Pagamento rata o finanziamento",
+    "mesi": 1,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [7, 1],
+    "giorni_suggeriti": 10,
+    "nota": "Imposta la data e la frequenza previste dal contratto."
+  },
+  {
+    "id": "d01",
+    "categoria": "documenti",
+    "titolo": "Rinnovo documento d'identità",
+    "mesi": 0,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [60, 30, 15],
+    "giorni_suggeriti": 365,
+    "nota": "La durata dipende dal documento e dalla situazione personale: inserisci la data riportata."
+  },
+  {
+    "id": "d02",
+    "categoria": "documenti",
+    "titolo": "Scadenza passaporto",
+    "mesi": 0,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [180, 90, 30],
+    "giorni_suggeriti": 365,
+    "nota": "Inserisci la data effettiva indicata sul passaporto."
+  },
+  {
+    "id": "s05",
+    "categoria": "salute",
+    "titolo": "Controllo o visita periodica",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 60,
+    "nota": "Voce generica da personalizzare; evita di inserire dettagli sanitari non necessari."
+  },
+  {
+    "id": "s06",
+    "categoria": "salute",
+    "titolo": "Appuntamento sanitario",
+    "mesi": 0,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [7, 1],
+    "giorni_suggeriti": 14,
+    "nota": "Aggiungi solo le informazioni strettamente necessarie per ricordare l'appuntamento."
+  },
+  {
+    "id": "m01",
+    "categoria": "famiglia",
+    "titolo": "Scadenza scolastica o familiare",
+    "mesi": 0,
+    "profili": ["coppia", "famiglia", "anziano"],
+    "promemoria": [30, 7, 1],
+    "giorni_suggeriti": 30,
+    "nota": "Voce generica: inserisci la data e le note utili per la famiglia."
+  },
+  {
+    "id": "i01",
+    "categoria": "assicurazioni",
+    "titolo": "Rinnovo assicurazione casa",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 60,
+    "nota": "Verifica data, coperture e condizioni riportate nella polizza."
+  },
+  {
+    "id": "ab01",
+    "categoria": "abbonamenti",
+    "titolo": "Rinnovo abbonamento",
+    "mesi": 12,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [30, 7, 1],
+    "giorni_suggeriti": 30,
+    "nota": "Controlla prezzo, rinnovo automatico e modalità di disdetta."
+  },
+  {
+    "id": "ab02",
+    "categoria": "abbonamenti",
+    "titolo": "Pagamento servizio ricorrente",
+    "mesi": 1,
+    "profili": ["single", "coppia", "famiglia", "anziano", "professionista"],
+    "promemoria": [7, 1],
+    "giorni_suggeriti": 10,
+    "nota": "Esempio: piattaforme, servizi digitali o altre spese ricorrenti."
+  },
+  {
+    "id": "l01",
+    "categoria": "lavoro",
+    "titolo": "Adempimento professionale",
+    "mesi": 0,
+    "profili": ["professionista"],
+    "promemoria": [30, 15, 7],
+    "giorni_suggeriti": 30,
+    "nota": "Voce generica: verifica la scadenza con il tuo ordine o consulente."
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "inps-auu",
+      "label": "INPS — Assegno unico e universale",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html"
+    },
+    {
+      "id": "inps-adi",
+      "label": "INPS — Assegno di inclusione",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html"
+    },
+    {
+      "id": "arera-bonus-sociale",
+      "label": "ARERA — Bonus sociali",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "url": "https://www.arera.it/consumatori/bonus-sociale"
+    },
+    {
+      "id": "lombardia-bandi",
+      "label": "Regione Lombardia — Bandi e Servizi",
+      "scope": "regionale",
+      "region": "Lombardia",
+      "municipality": null,
+      "url": "https://www.bandi.regione.lombardia.it/servizi/home"
+    },
+    {
+      "id": "milano-quota-nidi",
+      "label": "Comune di Milano — Revisione della quota nidi",
+      "scope": "comunale",
+      "region": "Lombardia",
+      "municipality": "Milano",
+      "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva"
+    },
+    {
+      "id": "milano-refezione",
+      "label": "Comune di Milano — Refezione scolastica",
+      "scope": "comunale",
+      "region": "Lombardia",
+      "municipality": "Milano",
+      "url": "https://www.comune.milano.it/servizi/scuola/refezione-scolastica"
+    }
+  ]
+}

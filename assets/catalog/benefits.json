@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-13",
+  "coverage": "Prime misure nazionali verificate su pagine ufficiali INPS e revisione della quota nidi 2026/27 del Comune di Milano verificate il 13/11/2026. Catalogo parziale: non copre in modo esaustivo bandi regionali o comunali.",
+  "programs": [
+    {
+      "id": "assegno-unico-universale-2026",
+      "title": "Assegno unico e universale per i figli a carico",
+      "description": "Contributo mensile erogato dall'INPS per i figli a carico. È una misura universale: si può fare domanda anche senza ISEE, ma in quel caso spetta l'importo minimo. Con ISEE valido, l'importo varia in base alla fascia ISEE, all'età dei figli e ad altre condizioni.",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "iseeMaxCents": null,
+      "requirements": [
+        "È necessario avere figli a carico; condizioni specifiche si applicano in base all'età e alla situazione del figlio.",
+        "L'ISEE non è necessario per presentare domanda, ma serve un ISEE valido per ottenere l'importo parametrato alla situazione economica.",
+        "Nel 2026 l'INPS indica importi mensili base per figlio minorenne da 58,30 € a 203,80 €; possono applicarsi maggiorazioni e l'importo dipende da altri fattori.",
+        "Presentare domanda all'INPS; verificare sul servizio ufficiale documenti, decorrenza e importi aggiornati."
+      ],
+      "startsAt": "2026-01-01",
+      "endsAt": null,
+      "lastVerifiedAt": "2026-11-13",
+      "source": {
+        "label": "INPS — Assegno unico e universale",
+        "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html"
+      }
+    },
+    {
+      "id": "assegno-inclusione-adi-2026",
+      "title": "Assegno di inclusione (ADI)",
+      "description": "Sostegno economico e di inclusione sociale, su domanda, rivolto ai nuclei con specifiche caratteristiche familiari e requisiti economici, di residenza e patrimoniali. L'ISEE è solo uno dei requisiti: la soglia ISEE da sola non consente di stabilire se si ha diritto.",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "iseeMaxCents": 1014000,
+      "requirements": [
+        "Nel nucleo deve essere presente almeno una persona minorenne, con disabilità, di almeno 60 anni oppure in condizione di svantaggio inserita in un programma di cura e assistenza certificato.",
+        "ISEE valido non superiore a 10.140 € e ulteriori limiti su reddito familiare e patrimoni mobiliari e immobiliari.",
+        "Il richiedente deve rispettare i requisiti di cittadinanza/soggiorno e residenza in Italia previsti dall'INPS; la pagina INPS indica almeno cinque anni di residenza, di cui gli ultimi due continuativi.",
+        "Sono previsti ulteriori vincoli e condizioni per i componenti del nucleo; leggere la scheda ufficiale INPS e verificare la situazione completa prima della domanda."
+      ],
+      "startsAt": "2026-01-01",
+      "endsAt": null,
+      "lastVerifiedAt": "2026-11-13",
+      "source": {
+        "label": "INPS — Assegno di inclusione",
+        "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html"
+      }
+    },
+    {
+      "id": "revisione-quota-nidi-milano-2026-27",
+      "title": "Revisione della quota contributiva per nidi e sezioni primavera",
+      "description": "Il Comune di Milano consente di chiedere la revisione della quota assegnata per l'anno educativo 2026/27 in presenza di cambiamenti o condizioni che incidono sulla situazione economica o familiare. La richiesta non è un contributo automatico: occorre presentare la domanda e la documentazione indicata dal Comune.",
+      "scope": "comunale",
+      "region": "Lombardia",
+      "municipality": "Milano",
+      "iseeMaxCents": null,
+      "requirements": [
+        "Riguarda bambine e bambini iscritti a un nido d'infanzia o a una sezione primavera del Comune di Milano per l'anno educativo 2026/27.",
+        "La revisione può essere richiesta in caso di perdita del lavoro, disagio socioeconomico, variazione della situazione familiare oppure errori o irregolarità nella quota assegnata.",
+        "La richiesta va presentata dall'inizio dell'anno educativo entro il 30 aprile 2027, seguendo la procedura e usando la modulistica pubblicate dal Comune.",
+        "ISEE e altri documenti possono essere necessari per valutare la domanda; consultare la scheda ufficiale per i requisiti e le istruzioni aggiornati."
+      ],
+      "startsAt": null,
+      "endsAt": "2027-04-30",
+      "lastVerifiedAt": "2026-11-13",
+      "source": {
+        "label": "Comune di Milano — Revisione della quota contributiva",
+        "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva"
+      }
+    }
+  ]
+}

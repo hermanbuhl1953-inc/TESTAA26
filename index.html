@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#176b57">
+  <meta name="description" content="Organizza le tue scadenze personali e familiari con Scadenzario.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Scadenzario">
+  <title>Scadenzario</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div id="app" class="app-shell" aria-live="polite">
+    <div class="loading-screen">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <p>Avvio di Scadenzario…</p>
+    </div>
+  </div>
+  <dialog id="deadline-dialog" class="dialog dialog-wide" aria-labelledby="deadline-dialog-title">
+    <form id="deadline-form" class="dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">LA TUA SCADENZA</p>
+          <h2 id="deadline-dialog-title">Nuova scadenza</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Chiudi">×</button>
+      </div>
+      <input id="deadline-id" type="hidden">
+      <input id="deadline-catalog-id" type="hidden">
+      <label class="field">
+        <span>Titolo</span>
+        <input id="deadline-title" name="title" maxlength="100" required placeholder="Es. Assicurazione auto">
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>Categoria</span>
+          <select id="deadline-category" name="category" required>
+            <option value="auto">Auto e trasporti</option>
+            <option value="casa">Casa</option>
+            <option value="fisco">Fisco</option>
+            <option value="documenti">Documenti</option>
+            <option value="salute">Salute</option>
+            <option value="famiglia">Famiglia</option>
+            <option value="banca">Banca e rate</option>
+            <option value="assicurazioni">Assicurazioni</option>
+            <option value="abbonamenti">Abbonamenti</option>
+            <option value="lavoro">Lavoro</option>
+            <option value="altro">Altro</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Data di scadenza</span>
+          <input id="deadline-date" name="date" type="date" required>
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="field">
+          <span>Ricorrenza</span>
+          <select id="deadline-recurrence" name="recurrence">
+            <option value="0">Una tantum</option>
+            <option value="1">Ogni mese</option>
+            <option value="2">Ogni 2 mesi</option>
+            <option value="3">Ogni 3 mesi</option>
+            <option value="6">Ogni 6 mesi</option>
+            <option value="12">Ogni anno</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Importo (facoltativo)</span>
+          <input id="deadline-amount" name="amount" inputmode="decimal" placeholder="Es. 125,50">
+        </label>
+      </div>
+      <label class="field">
+        <span>Note (facoltative)</span>
+        <textarea id="deadline-notes" name="notes" rows="3" maxlength="500" placeholder="Aggiungi un dettaglio utile"></textarea>
+      </label>
+      <fieldset class="reminder-fieldset">
+        <legend>Promemoria</legend>
+        <div class="reminder-options">
+          <label><input type="checkbox" name="reminder" value="30"> 30 giorni</label>
+          <label><input type="checkbox" name="reminder" value="15"> 15 giorni</label>
+          <label><input type="checkbox" name="reminder" value="7" checked> 7 giorni</label>
+          <label><input type="checkbox" name="reminder" value="1" checked> 1 giorno</label>
+        </div>
+      </fieldset>
+      <p class="form-error" id="deadline-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="button button-quiet" type="button" data-close-dialog>Annulla</button>
+        <button class="button button-primary" type="submit">Conferma e salva</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="profile-dialog" class="dialog" aria-labelledby="profile-dialog-title">
+    <form id="profile-form" class="dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">PROFILO LOCALE</p>
+          <h2 id="profile-dialog-title">Il tuo profilo</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Chiudi">×</button>
+      </div>
+      <label class="field"><span>Nome</span><input id="profile-name" required maxlength="50"></label>
+      <label class="field">
+        <span>Profilo</span>
+        <select id="profile-type" required>
+          <option value="single">Single</option>
+          <option value="coppia">Coppia</option>
+          <option value="famiglia">Famiglia</option>
+          <option value="anziano">Anziano o cura</option>
+          <option value="professionista">Professionista</option>
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button class="button button-quiet" type="button" data-close-dialog>Annulla</button>
+        <button class="button button-primary" type="submit">Salva profilo</button>
+      </div>
+    </form>
+  </dialog>
+  <input id="backup-file" class="visually-hidden" type="file" accept="application/json,.json">
+</body>
+</html>
