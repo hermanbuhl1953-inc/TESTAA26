@@ -62,14 +62,15 @@ jobs:
 
       - name: Configura GitHub Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
+        if: ${{ vars.PUBLISH_GITHUB_PAGES == 'true' }}
 
       - name: Carica il sito
         uses: actions/upload-pages-artifact@v3
+        if: ${{ vars.PUBLISH_GITHUB_PAGES == 'true' }}
         with:
           path: site
 
       - name: Pubblica su GitHub Pages
         uses: actions/deploy-pages@v4
+        if: ${{ vars.PUBLISH_GITHUB_PAGES == 'true' }}
         id: deployment

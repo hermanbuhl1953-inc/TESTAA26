@@ -38,10 +38,10 @@ La scelta attuale è una PWA in HTML, CSS e JavaScript, così il prototipo si pu
 - [x] backend Node senza dipendenze per servire catalogo e stato fonti
 - [x] controllo giornaliero dei cambiamenti su fonti ufficiali nazionali e pilota Lombardia/Milano
 - [x] coda esplicita di variazioni da verificare, senza aggiornamenti automatici o pubblicazione di requisiti
-- [x] predisposto workflow GitHub Actions pianificato e build per GitHub Pages; richiede ancora repository remoto e push iniziale
+- [x] attivato il controllo giornaliero GitHub Actions e predisposto il deploy Pages opzionale
 - [ ] verificare su bando ufficiale finestra, soglie e requisiti di Nidi Gratis Plus 2026/27 prima di inserirlo
 - [ ] raccogliere ulteriori fonti istituzionali e definire una procedura verificabile di aggiornamento per una regione/comune pilota
-- [ ] creare/collegare il repository GitHub e verificare la prima esecuzione pianificata e pubblicazione GitHub Pages
+- [ ] verificare piano e visibilità; abilitare Pages nelle impostazioni e impostare `PUBLISH_GITHUB_PAGES=true` se il sito può essere pubblicato
 - [ ] censire endpoint API, feed o open data ufficiali nazionali e per ciascuna Regione/Comune, documentando copertura e frequenza
 - [ ] definire un processo editoriale per verificare le variazioni, pubblicare gli aggiornamenti e ritirare misure scadute
 - [ ] ampliare progressivamente il registro fonti; nessun controllo web può garantire da solo copertura totale di tutti i Comuni italiani

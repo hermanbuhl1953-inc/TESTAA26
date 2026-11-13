@@ -20,13 +20,13 @@ Per fermare il servizio usa `Ctrl+C` nel terminale. Per avere controlli anche qu
 
 ## Pubblicazione pianificata con GitHub Actions e Pages
 
-È predisposto `.github/workflows/pages.yml`: dopo che il progetto è stato caricato su un repository GitHub con branch predefinito `main`, il workflow:
+È predisposto `.github/workflows/pages.yml`; sul branch predefinito `main`, il workflow:
 
 - esegue i test e controlla le fonti all'avvio, su richiesta e una volta al giorno;
 - salva il risultato pubblico in `assets/catalog/source-monitoring.json` e lo stato necessario al controllo successivo in `backend/data/source-state.json`;
-- pubblica su GitHub Pages solo l'app e i cataloghi pubblici, senza esporre la cartella `backend` nel sito.
+- pubblica su GitHub Pages solo l'app e i cataloghi pubblici, senza esporre la cartella `backend`, quando la pubblicazione è abilitata.
 
-Per attivarlo, crea un repository GitHub vuoto, pubblica il contenuto di questa cartella sul branch `main`, poi controlla l'esecuzione in **Actions** e abilita GitHub Pages usando **GitHub Actions** come sorgente, se richiesto. Il workflow non può essere eseguito finché questa cartella non è stata collegata e inviata a un repository remoto. Il progetto non è stato ancora pubblicato.
+Il progetto è collegato a `https://github.com/hermanbuhl1953-inc/scadenzario`. Il monitoraggio pianificato è stato eseguito; la pubblicazione Pages è disattivata finché non viene abilitata nelle impostazioni del repository. Per pubblicare, prima verifica che il piano supporti GitHub Pages per un repository privato e decidi se il sito può essere pubblico. Poi configura **Settings → Pages → Build and deployment → GitHub Actions** e crea la variabile Actions `PUBLISH_GITHUB_PAGES` con valore `true` in **Settings → Secrets and variables → Actions → Variables**. Le esecuzioni successive pubblicano il sito; se il piano o la configurazione non lo consentono, lascia la variabile non impostata e il monitoraggio continuerà comunque.
 
 I risultati pubblicati sono uno snapshot: l'applicazione resta statica; GitHub Actions aggiorna lo stato delle fonti e ridistribuisce il sito. Il workflow registra le impronte delle pagine nel repository per poter rilevare variazioni tra esecuzioni. Non caricare nel repository credenziali, documenti o dati personali. I controlli possono essere ritardati da GitHub o fallire se una fonte blocca richieste automatiche.
 
