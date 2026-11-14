@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "updateMode": "github-actions",
-  "lastRunAt": "2026-11-13T17:49:00.779Z",
-  "pendingReviewCount": 3,
+  "lastRunAt": "2026-11-14T12:10:37.975Z",
+  "pendingReviewCount": 4,
   "sources": [
     {
       "id": "inps-auu",
@@ -12,7 +12,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
       "status": "changed",
-      "lastCheckedAt": "2026-11-13T17:48:57.926Z",
+      "lastCheckedAt": "2026-11-14T12:10:35.839Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-13T17:48:57.926Z",
@@ -24,7 +24,7 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/FAQ-Maggiorazione_Assegno_unico_universale.pdf",
         "contentHash": "348a016fdeea4c465d457b07b4725385033bb5e96e1596371b537550ad0bee66",
         "sizeBytes": 130314,
-        "lastSeenAt": "2026-11-13T17:48:58.622Z",
+        "lastSeenAt": "2026-11-14T12:10:37.940Z",
         "analyzedAt": "2026-11-13T17:48:58.622Z",
         "status": "analyzed",
         "textLength": 7867,
@@ -40,7 +40,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html",
       "status": "changed",
-      "lastCheckedAt": "2026-11-13T17:48:57.996Z",
+      "lastCheckedAt": "2026-11-14T12:10:35.903Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-13T17:48:57.996Z",
@@ -52,7 +52,7 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/2025/Calendario_pagamenti_ADI_settembre_dicembre_2025.pdf",
         "contentHash": "29a1d7d21a9eec563f8444c634054c72618b85f8366cf31b5946f6be1b84b9d0",
         "sizeBytes": 250664,
-        "lastSeenAt": "2026-11-13T17:49:00.750Z",
+        "lastSeenAt": "2026-11-14T12:10:37.368Z",
         "analyzedAt": "2026-11-13T17:49:00.750Z",
         "status": "analyzed",
         "textLength": 1216,
@@ -67,10 +67,14 @@
       "region": null,
       "municipality": null,
       "url": "https://www.arera.it/consumatori/bonus-sociale",
-      "status": "unchanged",
-      "lastCheckedAt": "2026-11-13T17:48:58.001Z",
-      "pendingReview": false,
-      "lastChange": null,
+      "status": "changed",
+      "lastCheckedAt": "2026-11-14T12:10:35.906Z",
+      "pendingReview": true,
+      "lastChange": {
+        "detectedAt": "2026-11-14T12:10:35.906Z",
+        "title": "Arera: Bonus sociali",
+        "excerpt": "Arera: Bonus sociali ITA ITA ENG Seguici su: X Linkedin Youtube Facebook Instagram Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCESSO RACCOLTE DATI Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCES"
+      },
       "lastError": null,
       "lastPdfAnalyzed": null,
       "pdfError": null
@@ -83,10 +87,10 @@
       "municipality": null,
       "url": "https://www.bandi.regione.lombardia.it/servizi/home",
       "status": "changed",
-      "lastCheckedAt": "2026-11-13T17:48:58.002Z",
+      "lastCheckedAt": "2026-11-14T12:10:35.911Z",
       "pendingReview": true,
       "lastChange": {
-        "detectedAt": "2026-11-13T17:48:58.002Z",
+        "detectedAt": "2026-11-14T12:10:35.911Z",
         "title": "Home | Bandi e Servizi",
         "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi"
       },
@@ -102,7 +106,7 @@
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva",
       "status": "error",
-      "lastCheckedAt": "2026-11-13T17:48:58.004Z",
+      "lastCheckedAt": "2026-11-14T12:10:35.912Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": "risposta HTTP 403",
@@ -117,7 +121,7 @@
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/refezione-scolastica",
       "status": "error",
-      "lastCheckedAt": "2026-11-13T17:48:58.005Z",
+      "lastCheckedAt": "2026-11-14T12:10:35.913Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": "risposta HTTP 403",
