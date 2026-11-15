@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "updateMode": "github-actions",
-  "lastRunAt": "2026-11-14T12:10:37.975Z",
+  "lastRunAt": "2026-11-15T12:43:45.927Z",
   "pendingReviewCount": 4,
   "sources": [
     {
@@ -12,7 +12,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
       "status": "changed",
-      "lastCheckedAt": "2026-11-14T12:10:35.839Z",
+      "lastCheckedAt": "2026-11-15T12:43:42.157Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-13T17:48:57.926Z",
@@ -24,7 +24,7 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/FAQ-Maggiorazione_Assegno_unico_universale.pdf",
         "contentHash": "348a016fdeea4c465d457b07b4725385033bb5e96e1596371b537550ad0bee66",
         "sizeBytes": 130314,
-        "lastSeenAt": "2026-11-14T12:10:37.940Z",
+        "lastSeenAt": "2026-11-15T12:43:43.756Z",
         "analyzedAt": "2026-11-13T17:48:58.622Z",
         "status": "analyzed",
         "textLength": 7867,
@@ -40,7 +40,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html",
       "status": "changed",
-      "lastCheckedAt": "2026-11-14T12:10:35.903Z",
+      "lastCheckedAt": "2026-11-15T12:43:42.201Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-13T17:48:57.996Z",
@@ -52,7 +52,7 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/2025/Calendario_pagamenti_ADI_settembre_dicembre_2025.pdf",
         "contentHash": "29a1d7d21a9eec563f8444c634054c72618b85f8366cf31b5946f6be1b84b9d0",
         "sizeBytes": 250664,
-        "lastSeenAt": "2026-11-14T12:10:37.368Z",
+        "lastSeenAt": "2026-11-15T12:43:45.920Z",
         "analyzedAt": "2026-11-13T17:49:00.750Z",
         "status": "analyzed",
         "textLength": 1216,
@@ -68,7 +68,7 @@
       "municipality": null,
       "url": "https://www.arera.it/consumatori/bonus-sociale",
       "status": "changed",
-      "lastCheckedAt": "2026-11-14T12:10:35.906Z",
+      "lastCheckedAt": "2026-11-15T12:43:42.202Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-14T12:10:35.906Z",
@@ -87,10 +87,10 @@
       "municipality": null,
       "url": "https://www.bandi.regione.lombardia.it/servizi/home",
       "status": "changed",
-      "lastCheckedAt": "2026-11-14T12:10:35.911Z",
+      "lastCheckedAt": "2026-11-15T12:43:42.205Z",
       "pendingReview": true,
       "lastChange": {
-        "detectedAt": "2026-11-14T12:10:35.911Z",
+        "detectedAt": "2026-11-15T12:43:42.205Z",
         "title": "Home | Bandi e Servizi",
         "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi"
       },
@@ -106,7 +106,7 @@
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva",
       "status": "error",
-      "lastCheckedAt": "2026-11-14T12:10:35.912Z",
+      "lastCheckedAt": "2026-11-15T12:43:42.206Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": "risposta HTTP 403",
@@ -121,7 +121,7 @@
       "municipality": "Milano",
       "url": "https://www.comune.milano.it/servizi/scuola/refezione-scolastica",
       "status": "error",
-      "lastCheckedAt": "2026-11-14T12:10:35.913Z",
+      "lastCheckedAt": "2026-11-15T12:43:42.208Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": "risposta HTTP 403",
