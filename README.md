@@ -41,7 +41,8 @@ I risultati pubblicati sono uno snapshot: l'applicazione resta statica; GitHub A
 
 ## Controllo delle fonti e revisione
 
-- Il registro iniziale controlla pagine ufficiali INPS e ARERA, il portale bandi della Lombardia e due pagine del Comune di Milano.
+- Il registro controlla soltanto fonti nazionali INPS e ARERA, coerentemente con il catalogo per persone e famiglie.
+- Il catalogo in app è curato da schede ufficiali per persone e famiglie, non importato come regole da cataloghi statistici. L'API CKAN di [dati.gov.it](https://www.dati.gov.it/api) indicizza, ad esempio, il dataset INPS [Assegno Unico Nuclei 2022-2024](https://dati.gov.it/opendata/dataset/assegno-unico-nuclei-2022-2024), ma i suoi CSV/JSON contengono conteggi aggregati e importi storici, non requisiti correnti o una verifica individuale; per questo non viene trattato come elenco di bonus richiedibili. Il nuovo portale [Incentivi Italia](https://www.incentivitalia.gov.it/il-progetto) è rivolto principalmente agli incentivi alle imprese e non è usato per il catalogo familiare.
 - Il sistema confronta il contenuto delle pagine e, solo se rileva un cambiamento e `OPENAI_API_KEY` è configurata, usa lo SDK OpenAI con Structured Outputs JSON Schema per generare una proposta in `pendingProposal` dentro `backend/data/source-state.json`. Configura `OPENAI_API_KEY` come secret GitHub Actions; `OPENAI_MODEL` è una variabile facoltativa (predefinito `gpt-4o-mini`). In locale, definisci `OPENAI_API_KEY` nell'ambiente prima di avviare Node.
 - Con il backend attivo, la sezione **Bonus e agevolazioni** mostra la coda staging. `GET /api/staging` restituisce le variazioni in attesa; `POST /api/staging/approve` aggiunge una bozza al catalogo dopo una conferma esplicita, mentre `POST /api/staging/discard` rimuove la voce dalla coda. La conferma richiede una verifica sulla fonte: la data di approvazione viene registrata come ultima verifica. Le API di scrittura richiedono origine same-site e il server ascolta in locale per impostazione predefinita.
 - Il monitor estrae anche i link `.pdf` HTTPS sullo stesso host della pagina (fino a cinque per fonte) e supporta fonti che sono direttamente PDF. Ogni download ha timeout di 15 secondi e limite di 10 MB; il testo viene passato all'estrazione AI solo quando il PDF è nuovo o cambia. L'hash e l'ultimo esito sono registrati in `pdfDocuments`/`lastPdfAnalyzed`; file identici non vengono riparsati. I link verso host diversi vengono ignorati per sicurezza.
@@ -67,7 +68,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 - calendario mensile
 - suggerimenti iniziali dal catalogo JSON, filtrati per profilo
 - proiezione indicativa a 12 mesi con saldo iniziale, riserva, entrate ricorrenti e scadenze registrate
-- ricerca territoriale di agevolazioni tramite catalogo JSON e API locale; l'ISEE è facoltativo e non viene inviato al servizio. Include le prime misure nazionali verificate su INPS e la revisione della quota nidi 2026/27 del Comune di Milano. La copertura regionale e comunale resta parziale
+- consultazione delle misure nazionali per persone e famiglie nel catalogo JSON, con requisiti ISEE descritti separatamente per misura e senza raccolta di dati ISEE; catalogo parziale, non esaustivo e non idoneo a verificare automaticamente il diritto
 - controllo giornaliero delle modifiche alle prime fonti ufficiali nazionali e lombardo-milanesi, con coda di revisione umana e senza pubblicazione automatica delle variazioni
 - lettura testuale dei PDF collegati alle fonti, con limiti di download e deduplicazione tramite hash
 - esportazione e ripristino di un backup JSON
@@ -78,7 +79,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 
 - Profilo e scadenze sono conservati nel `localStorage` di quel browser e dispositivo.
 - I dati **non sono cifrati**, sincronizzati o protetti da un account.
-- Saldo iniziale, riserva, entrate inserite nella pianificazione e importo ISEE restano solo in memoria temporanea: non sono salvati né inclusi nei backup e si cancellano ricaricando la pagina. Non caricare il documento ISEE.
+- Saldo iniziale, riserva ed entrate inserite nella pianificazione restano solo in memoria temporanea: non sono salvati né inclusi nei backup e si cancellano ricaricando la pagina.
 - Non inserire documenti, dati sanitari o informazioni riservate.
 - L'eliminazione dei dati del sito dal browser può cancellare le scadenze. Esporta periodicamente un backup.
 - Le voci del catalogo sono promemoria generici, non consulenza fiscale o legale: verifica date e periodicità con fonti ufficiali e personalizza i suggerimenti prima di salvarli.

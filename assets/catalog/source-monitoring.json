@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "updateMode": "github-actions",
   "lastRunAt": "2026-11-16T10:15:34.153Z",
-  "pendingReviewCount": 4,
+  "pendingReviewCount": 3,
   "sources": [
     {
       "id": "inps-auu",
@@ -61,6 +61,36 @@
       "pdfError": null
     },
     {
+      "id": "inps-bonus-nido",
+      "label": "INPS — Bonus asilo nido",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione-51105.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione.html",
+      "status": "unchecked",
+      "lastCheckedAt": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "lastError": null,
+      "lastPdfAnalyzed": null,
+      "pdfError": null
+    },
+    {
+      "id": "inps-bonus-nuovi-nati",
+      "label": "INPS — Bonus nuovi nati",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-nuovi-nati.html",
+      "status": "unchecked",
+      "lastCheckedAt": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "lastError": null,
+      "lastPdfAnalyzed": null,
+      "pdfError": null
+    },
+    {
       "id": "arera-bonus-sociale",
       "label": "ARERA — Bonus sociali",
       "scope": "nazionale",
@@ -76,55 +106,6 @@
         "excerpt": "Arera: Bonus sociali ITA ITA ENG Seguici su: X Linkedin Youtube Facebook Instagram Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCESSO RACCOLTE DATI Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCES"
       },
       "lastError": "Quota o limite di richieste OpenAI raggiunto.",
-      "lastPdfAnalyzed": null,
-      "pdfError": null
-    },
-    {
-      "id": "lombardia-bandi",
-      "label": "Regione Lombardia — Bandi e Servizi",
-      "scope": "regionale",
-      "region": "Lombardia",
-      "municipality": null,
-      "url": "https://www.bandi.regione.lombardia.it/servizi/home",
-      "status": "error-ai",
-      "lastCheckedAt": "2026-11-16T10:15:30.126Z",
-      "pendingReview": true,
-      "lastChange": {
-        "detectedAt": "2026-11-16T10:15:30.126Z",
-        "title": "Home | Bandi e Servizi",
-        "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi"
-      },
-      "lastError": "Quota o limite di richieste OpenAI raggiunto.",
-      "lastPdfAnalyzed": null,
-      "pdfError": null
-    },
-    {
-      "id": "milano-quota-nidi",
-      "label": "Comune di Milano — Revisione della quota nidi",
-      "scope": "comunale",
-      "region": "Lombardia",
-      "municipality": "Milano",
-      "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva",
-      "status": "error",
-      "lastCheckedAt": "2026-11-16T10:15:30.127Z",
-      "pendingReview": false,
-      "lastChange": null,
-      "lastError": "risposta HTTP 403",
-      "lastPdfAnalyzed": null,
-      "pdfError": null
-    },
-    {
-      "id": "milano-refezione",
-      "label": "Comune di Milano — Refezione scolastica",
-      "scope": "comunale",
-      "region": "Lombardia",
-      "municipality": "Milano",
-      "url": "https://www.comune.milano.it/servizi/scuola/refezione-scolastica",
-      "status": "error",
-      "lastCheckedAt": "2026-11-16T10:15:30.127Z",
-      "pendingReview": false,
-      "lastChange": null,
-      "lastError": "risposta HTTP 403",
       "lastPdfAnalyzed": null,
       "pdfError": null
     }

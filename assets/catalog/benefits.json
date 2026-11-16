@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13",
-  "coverage": "Prime misure nazionali verificate su pagine ufficiali INPS e revisione della quota nidi 2026/27 del Comune di Milano verificate il 13/11/2026. Catalogo parziale: non copre in modo esaustivo bandi regionali o comunali.",
+  "updatedAt": "2026-11-16",
+  "coverage": "Misure nazionali per persone e famiglie verificate su fonti ufficiali INPS il 16/11/2026, più una procedura comunale di Milano. Catalogo parziale, non esaustivo e senza verifica automatica dell'idoneità. I requisiti ISEE sono riportati per singola misura e non sono confrontati con un valore ISEE generico.",
   "programs": [
     {
       "id": "assegno-unico-universale-2026",
@@ -13,8 +13,8 @@
       "iseeMaxCents": null,
       "requirements": [
         "È necessario avere figli a carico; condizioni specifiche si applicano in base all'età e alla situazione del figlio.",
-        "L'ISEE non è necessario per presentare domanda, ma serve un ISEE valido per ottenere l'importo parametrato alla situazione economica.",
-        "Nel 2026 l'INPS indica importi mensili base per figlio minorenne da 58,30 € a 203,80 €; possono applicarsi maggiorazioni e l'importo dipende da altri fattori.",
+        "Nel 2026 l'INPS indica, per ciascun figlio minorenne, una quota mensile base da 203,80 € con ISEE per specifiche prestazioni familiari e per l'inclusione fino a 17.468,51 € a 58,30 € senza ISEE o con ISEE pari o superiore a 46.582,71 €. Importi e soglie sono rivalutati.",
+        "L'ISEE non è necessario per presentare domanda; il valore per specifiche prestazioni familiari e per l'inclusione incide sull'importo.",
         "Presentare domanda all'INPS; verificare sul servizio ufficiale documenti, decorrenza e importi aggiornati."
       ],
       "startsAt": "2026-01-01",
@@ -35,7 +35,7 @@
       "iseeMaxCents": 1014000,
       "requirements": [
         "Nel nucleo deve essere presente almeno una persona minorenne, con disabilità, di almeno 60 anni oppure in condizione di svantaggio inserita in un programma di cura e assistenza certificato.",
-        "ISEE valido non superiore a 10.140 € e ulteriori limiti su reddito familiare e patrimoni mobiliari e immobiliari.",
+        "ISEE per specifiche prestazioni familiari e per l'inclusione in corso di validità non superiore a 10.140 €, oltre a limiti distinti su reddito familiare e patrimoni mobiliari e immobiliari.",
         "Il richiedente deve rispettare i requisiti di cittadinanza/soggiorno e residenza in Italia previsti dall'INPS; la pagina INPS indica almeno cinque anni di residenza, di cui gli ultimi due continuativi.",
         "Sono previsti ulteriori vincoli e condizioni per i componenti del nucleo; leggere la scheda ufficiale INPS e verificare la situazione completa prima della domanda."
       ],
@@ -67,6 +67,51 @@
       "source": {
         "label": "Comune di Milano — Revisione della quota contributiva",
         "url": "https://www.comune.milano.it/servizi/scuola/nidi-d-infanzia-e-sezioni-primavera-revisione-della-quota-contributiva"
+      }
+    },
+    {
+      "id": "bonus-asilo-nido-2026",
+      "title": "Bonus asilo nido e supporto domiciliare",
+      "description": "Contributo INPS per le spese di frequenza di servizi educativi per bambini sotto i tre anni oppure, in caso di gravi patologie croniche certificate che impediscono la frequenza, per forme di supporto presso la propria abitazione.",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "iseeMaxCents": null,
+      "requirements": [
+        "Per la frequenza sono ammessi nidi e micronidi, sezioni primavera, spazi gioco e servizi educativi in contesto domiciliare con regolare titolo abilitativo. Il supporto domiciliare richiede gravi patologie croniche certificate.",
+        "Per i bambini nati dal 1° gennaio 2024: fino a 3.600 € annui con ISEE per specifiche prestazioni familiari e per l'inclusione per minorenni fino a 40.000 €; altrimenti fino a 1.500 €.",
+        "Per i bambini nati prima del 1° gennaio 2024: fino a 3.000 € con ISEE minorenni fino a 25.000,99 €, fino a 2.500 € con ISEE minorenni da 25.001 € a 40.000 €, altrimenti fino a 1.500 €.",
+        "La frequenza è rimborsata fino a 11 mensilità e non oltre il costo della retta; sono richiesti documenti di spesa e prova del pagamento. Le domande 2026 sono aperte e vanno aggiornate ogni anno con le mensilità o la certificazione richiesta.",
+        "Il contributo non è cumulabile con le detrazioni fiscali per la frequenza degli asili nido. Verificare importo, ISEE applicabile e documenti nella scheda INPS."
+      ],
+      "startsAt": "2026-01-01",
+      "endsAt": null,
+      "lastVerifiedAt": "2026-11-16",
+      "source": {
+        "label": "INPS — Bonus asilo nido",
+        "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione-51105.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione.html"
+      }
+    },
+    {
+      "id": "bonus-nuovi-nati-2026",
+      "title": "Bonus nuovi nati",
+      "description": "Contributo INPS una tantum per genitori di minori nati, adottati o in affido preadottivo dal 1° gennaio 2025, alle condizioni indicate dall'Istituto.",
+      "scope": "nazionale",
+      "region": null,
+      "municipality": null,
+      "iseeMaxCents": null,
+      "requirements": [
+        "Importo una tantum di 1.000 € per ciascun minore nato, adottato o in affido preadottivo dal 1° gennaio 2025.",
+        "ISEE per specifiche prestazioni familiari e per l'inclusione applicabile al minore non superiore a 40.000 €; nel calcolo non si considerano gli importi dell'Assegno unico.",
+        "La domanda va presentata entro 120 giorni dalla nascita o dall'ingresso in famiglia. Per gli eventi 2026 avvenuti prima dell'apertura del servizio, il termine transitorio indicato dall'INPS era il 12 agosto 2026 ed è scaduto.",
+        "Verificare la finestra utile per il proprio evento e gli altri requisiti nella scheda INPS prima di presentare domanda."
+      ],
+      "startsAt": "2025-01-01",
+      "endsAt": null,
+      "lastVerifiedAt": "2026-11-16",
+      "source": {
+        "label": "INPS — Bonus nuovi nati",
+        "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-nuovi-nati.html"
       }
     }
   ]

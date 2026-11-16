@@ -77,13 +77,6 @@ let planner = {
   reserveCents: 0,
   incomes: [],
 };
-let bonusSearch = {
-  searched: false,
-  region: '',
-  municipality: '',
-  iseeCents: null,
-};
-
 const app = document.querySelector('#app');
 const deadlineDialog = document.querySelector('#deadline-dialog');
 const profileDialog = document.querySelector('#profile-dialog');
@@ -888,54 +881,35 @@ function renderStagingReview() {
 }
 
 function renderBenefits() {
-  const staleProgramCount = bonusSearch.searched
-    ? bonusCatalog.filter((program) => !program.lastVerifiedAt
+  const staleProgramCount = bonusCatalog.filter((program) => program.scope === 'nazionale'
+      && (!program.lastVerifiedAt
       || -dayDifference(program.lastVerifiedAt) < 0
-      || -dayDifference(program.lastVerifiedAt) > 90).length
-    : 0;
-  const matchingPrograms = bonusSearch.searched && !bonusCatalogError
+      || -dayDifference(program.lastVerifiedAt) > 90)).length;
+  const matchingPrograms = !bonusCatalogError
     ? bonusCatalog.filter((program) => {
       const today = dateToIso(dateOnly(new Date()));
       const daysSinceVerification = program.lastVerifiedAt ? -dayDifference(program.lastVerifiedAt) : Number.POSITIVE_INFINITY;
-      const regionMatches = program.scope === 'nazionale'
-        || (program.region && program.region === bonusSearch.region);
-      const municipalityMatches = program.scope !== 'comunale'
-        || (program.municipality && program.municipality.trim().toLocaleLowerCase('it-IT')
-          === bonusSearch.municipality.trim().toLocaleLowerCase('it-IT'));
-      const iseeMatches = program.iseeMaxCents === null
-        || (bonusSearch.iseeCents !== null && bonusSearch.iseeCents <= program.iseeMaxCents);
+      if (program.scope !== 'nazionale') return false;
       const dateMatches = (!program.startsAt || program.startsAt <= today)
         && (!program.endsAt || program.endsAt >= today);
       return daysSinceVerification >= 0 && daysSinceVerification <= 90
-        && regionMatches && municipalityMatches && iseeMatches && dateMatches;
+        && dateMatches;
     })
     : [];
   return `
     <p class="eyebrow">SUPPORTO ALLE FAMIGLIE</p><h1 class="page-title">Bonus e agevolazioni</h1>
-    <p class="page-description">Indica il territorio e, se disponibile, l'ISEE per consultare le misure nazionali verificate e le opportunità locali raccolte. Se non inserisci l'ISEE, compariranno solo le misure senza una soglia ISEE dichiarata. Il risultato è un orientamento, non una verifica automatica dei requisiti.</p>
-    <div class="notice warning">${icon('info')} L'ISEE da solo non determina il diritto a un beneficio: possono servire altri requisiti, domande entro scadenza e graduatorie. I risultati sono solo piste da verificare, non attestazioni di idoneità.</div>
-    <form id="benefits-form" class="settings-card benefits-form">
-      <h3>Parametri di ricerca</h3>
-      <div class="field-row">
-        <label class="field"><span>Regione</span><select name="region" required><option value="">Seleziona la regione</option>${ITALIAN_REGIONS.map((region) => `<option value="${escapeHtml(region)}" ${bonusSearch.region === region ? 'selected' : ''}>${escapeHtml(region)}</option>`).join('')}</select></label>
-        <label class="field"><span>Comune</span><input name="municipality" maxlength="80" required placeholder="es. Bologna" value="${escapeHtml(bonusSearch.municipality)}"></label>
-        <label class="field"><span>ISEE in euro (facoltativo, non viene salvato)</span><input name="isee" inputmode="decimal" placeholder="es. 15.000,00" value="${bonusSearch.iseeCents === null ? '' : escapeHtml(formatCentsForInput(bonusSearch.iseeCents))}"></label>
-      </div>
-      <button class="button button-primary" type="submit">Cerca agevolazioni</button>
-      <p class="planner-empty">Se non hai un ISEE valido, lascia il campo vuoto: le misure con soglia ISEE non saranno mostrate. L'importo resta solo in memoria finché la pagina è aperta. Non caricare il documento ISEE.</p>
-    </form>
-    ${renderStagingReview()}
+    <p class="page-description">Consulta le misure nazionali per persone e famiglie verificate nelle fonti ufficiali. Requisiti ISEE, importi e scadenze dipendono dalla singola misura: controllali nella scheda prima di presentare domanda.</p>
+    <div class="notice warning">${icon('info')} Elenco informativo, non verifica l’idoneità e non copre tutte le agevolazioni. Non inserire qui dati o documenti ISEE.</div>
     ${bonusCatalogError
       ? `<div class="notice error">${icon('info')} Catalogo non disponibile: ${escapeHtml(bonusCatalogError)}. Riprova quando il file dei dati è raggiungibile.</div>`
       : bonusCatalog.length === 0
-        ? `<div class="empty-state"><span class="empty-icon">${icon('benefits')}</span><h3>Nessuna voce verificata nel catalogo</h3><p>Il catalogo integrato è attualmente vuoto: l'app non può verificare i bandi del tuo territorio. Questo non significa che non esistano agevolazioni. Il catalogo è un prototipo non esaustivo e richiede fonti ufficiali e aggiornamenti periodici.</p></div>`
+        ? `<div class="empty-state"><span class="empty-icon">${icon('benefits')}</span><h3>Nessuna misura nazionale verificata nel catalogo</h3><p>Il catalogo è parziale e non esaustivo: l'assenza di una misura qui non significa che non esistano altre agevolazioni. Ogni voce richiede fonti ufficiali e aggiornamenti periodici.</p></div>`
         : `<p class="catalog-update">Catalogo non esaustivo · aggiornato ${bonusCatalogUpdatedAt ? escapeHtml(formatDate(bonusCatalogUpdatedAt, { day: 'numeric', month: 'long', year: 'numeric' })) : 'senza data dichiarata'}</p>`}
     ${staleProgramCount ? `<div class="notice warning">${icon('info')} ${staleProgramCount} ${staleProgramCount === 1 ? 'voce non è inclusa' : 'voci non sono incluse'} nei risultati perché la data di verifica è assente o supera 90 giorni.</div>` : ''}
-    ${renderSourceMonitoring()}
-    ${bonusSearch.searched && !bonusCatalogError && bonusCatalog.length > 0
+    ${!bonusCatalogError && bonusCatalog.length > 0
       ? matchingPrograms.length
-        ? `<section class="benefits-results"><h2>Possibili agevolazioni da approfondire</h2>${matchingPrograms.map((program) => `<article class="benefit-card"><h3>${escapeHtml(program.title)}</h3><p>${escapeHtml(program.description)}</p><p class="benefit-meta">${escapeHtml(program.scope)}${program.region ? ` · ${escapeHtml(program.region)}` : ''}${program.municipality ? ` · ${escapeHtml(program.municipality)}` : ''}${program.iseeMaxCents === null ? '' : ` · ISEE dichiarato fino a ${formatAmount(program.iseeMaxCents)}`}</p>${program.requirements.length ? `<p><strong>Requisiti ulteriori da verificare:</strong> ${program.requirements.map(escapeHtml).join('; ')}</p>` : ''}<p class="benefit-meta">Verificato il ${program.lastVerifiedAt ? escapeHtml(formatDate(program.lastVerifiedAt, { day: 'numeric', month: 'long', year: 'numeric' })) : 'data non indicata'}</p><a href="${escapeHtml(program.source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(program.source.label)} — apri la scheda ufficiale</a></article>`).join('')}</section>`
-        : `<div class="empty-state"><span class="empty-icon">${icon('benefits')}</span><h3>Nessuna corrispondenza nel catalogo</h3><p>Non sono state trovate voci attive che corrispondono ai parametri inseriti. Il catalogo non è esaustivo: controlla anche i siti istituzionali di INPS, Regione e Comune.</p></div>`
+        ? `<section class="benefits-results"><h2>Misure nazionali da approfondire</h2>${matchingPrograms.map((program) => `<article class="benefit-card"><h3>${escapeHtml(program.title)}</h3><p>${escapeHtml(program.description)}</p><p class="benefit-meta">${escapeHtml(program.scope)}${program.region ? ` · ${escapeHtml(program.region)}` : ''}${program.municipality ? ` · ${escapeHtml(program.municipality)}` : ''}</p>${program.requirements.length ? `<p><strong>Requisiti da verificare:</strong> ${program.requirements.map(escapeHtml).join('; ')}</p>` : ''}<p class="benefit-meta">Scheda verificata il ${program.lastVerifiedAt ? escapeHtml(formatDate(program.lastVerifiedAt, { day: 'numeric', month: 'long', year: 'numeric' })) : 'data non indicata'}</p><a href="${escapeHtml(program.source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(program.source.label)} — apri la fonte ufficiale</a></article>`).join('')}</section>`
+        : `<div class="empty-state"><span class="empty-icon">${icon('benefits')}</span><h3>Nessuna corrispondenza nel catalogo</h3><p>Non sono state trovate misure nazionali attive che corrispondono ai criteri selezionati. Il catalogo è parziale e non esaustivo.</p></div>`
       : ''}
     ${renderInstallBanner()}`;
 }
@@ -1255,7 +1229,6 @@ function handleClick(event) {
     case 'navigate':
       currentView = button.dataset.view;
       render();
-      if (currentView === 'benefits' && bonusCatalogMode === 'backend') void loadStaging();
       break;
     case 'new-deadline':
       openDeadlineForm(null, button.dataset.date ? { dueDate: button.dataset.date } : {});
@@ -1383,22 +1356,6 @@ function handleSubmit(event) {
     planner.incomes.push({ id: makeId(), name, amountCents, payDay });
     render();
   }
-  if (event.target.id === 'benefits-form') {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const region = String(formData.get('region') ?? '');
-    const municipality = String(formData.get('municipality') ?? '').trim();
-    const iseeInput = String(formData.get('isee') ?? '').trim();
-    const iseeCents = iseeInput ? parseAmountCents(iseeInput) : null;
-    if (!ITALIAN_REGIONS.includes(region) || !municipality || municipality.length > 80
-      || (iseeInput && iseeCents === null)) {
-      showToast('Inserisci una regione e un comune validi; se indichi l’ISEE, controlla il formato dell’importo.', true);
-      return;
-    }
-    bonusSearch = { searched: true, region, municipality, iseeCents };
-    currentView = 'benefits';
-    render();
-  }
   if (event.target.id === 'profile-form') {
     event.preventDefault();
     const name = document.querySelector('#profile-name').value.trim();
@@ -1522,7 +1479,6 @@ async function loadBonusCatalog() {
     bonusCatalogError = error.message;
     console.error('Caricamento catalogo agevolazioni non riuscito:', error);
   }
-  await loadStaging({ renderAfter: false });
   render();
 }
 

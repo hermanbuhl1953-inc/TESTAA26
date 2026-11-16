@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum HouseholdMemberRole {
+  ADULT
+  CHILD
+}
+
+enum HousingType {
+  RENT
+  OWNED
+  OTHER
+}
+
+enum EmploymentStatus {
+  EMPLOYED
+  UNEMPLOYED
+  INACTIVE
+}
+
+enum BenefitRuleField {
+  region
+  municipality
+  iseeAmountCents
+  iseeType
+  adultCount
+  childCount
+  householdSize
+  childAges
+  hasMinor
+  hasChildUnder3
+  hasAdultOver65
+  hasDisability
+  hasNonSelfSufficientMember
+  employmentStatuses
+  housingType
+  registeredRentalContract
+  residenceMonths
+}
+
+enum BenefitRuleOperator {
+  EQ
+  NE
+  LTE
+  GTE
+  IN
+  BETWEEN
+  ANY_BETWEEN
+  ALL_BETWEEN
+  CONTAINS
+}
+
+model Benefit {
+  id          String        @id @default(cuid())
+  code        String        @unique
+  title       String
+  description String
+  opensAt     DateTime?
+  closesAt    DateTime?
+  rules       BenefitRule[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model BenefitRule {
+  id            String   @id @default(cuid())
+  benefitId     String
+  code          String
+  label         String
+  field         BenefitRuleField
+  operator      BenefitRuleOperator
+  expectedValue Json
+  required      Boolean  @default(true)
+  benefit       Benefit  @relation(fields: [benefitId], references: [id], onDelete: Cascade)
+
+  @@unique([benefitId, code])
+  @@index([benefitId])
+}
+
+model HouseholdProfile {
+  id                         String            @id @default(cuid())
+  region                     String?
+  municipality               String?
+  iseeAmountCents            Int?
+  iseeType                   String?
+  adultCount                 Int?
+  childCount                 Int?
+  housingType                HousingType?
+  registeredRentalContract   Boolean?
+  residenceMonths            Int?
+  members                    HouseholdMember[]
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+}
+
+model HouseholdMember {
+  id                    String               @id @default(cuid())
+  householdProfileId    String
+  role                  HouseholdMemberRole
+  ageYears              Int?
+  hasDisability         Boolean?
+  isNonSelfSufficient   Boolean?
+  employmentStatus      EmploymentStatus?
+  householdProfile      HouseholdProfile     @relation(fields: [householdProfileId], references: [id], onDelete: Cascade)
+
+  @@index([householdProfileId])
+}
