@@ -1,11 +1,55 @@
 {
   "schemaVersion": 1,
   "fingerprintVersion": 2,
-  "lastRunAt": "2026-11-16T10:21:47.472Z",
+  "lastRunAt": "2026-11-16T10:55:14.182Z",
   "sources": {
+    "inps-bonus-nido": {
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-16T10:55:12.167Z",
+      "title": "Portale Inps - Bonus asilo nido e forme di supporto presso la propria abitazione",
+      "excerpt": "Portale Inps - Bonus asilo nido e forme di supporto presso la propria abitazione it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contr",
+      "contentHash": "b7b08eec8a05a6fa9c976f29e86b734dd20d30aedbfcd9ea072b79222cac5619",
+      "pdfFingerprint": "",
+      "pdfLinks": [],
+      "etag": null,
+      "lastModified": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "reviewedAt": null,
+      "reviewNote": null,
+      "lastError": null,
+      "pdfDocuments": [],
+      "lastPdfAnalyzed": null,
+      "pdfError": null,
+      "pendingProposal": null,
+      "proposalStatus": null,
+      "aiError": null
+    },
+    "inps-bonus-nuovi-nati": {
+      "status": "baseline",
+      "lastCheckedAt": "2026-11-16T10:55:12.168Z",
+      "title": "Portale Inps - Bonus nuovi nati",
+      "excerpt": "Portale Inps - Bonus nuovi nati it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Contributi figurativi Rimborso di",
+      "contentHash": "e78cd424be83bd36be3bb3e5c95b42d24cd0b59a86b36da11059dcf19b081350",
+      "pdfFingerprint": "",
+      "pdfLinks": [],
+      "etag": null,
+      "lastModified": null,
+      "pendingReview": false,
+      "lastChange": null,
+      "reviewedAt": null,
+      "reviewNote": null,
+      "lastError": null,
+      "pdfDocuments": [],
+      "lastPdfAnalyzed": null,
+      "pdfError": null,
+      "pendingProposal": null,
+      "proposalStatus": null,
+      "aiError": null
+    },
     "inps-auu": {
-      "status": "error-ai",
-      "lastCheckedAt": "2026-11-16T10:21:45.019Z",
+      "status": "changed",
+      "lastCheckedAt": "2026-11-16T10:55:12.079Z",
       "title": "Portale Inps - Assegno unico e universale per i figli a carico",
       "excerpt": "Portale Inps - Assegno unico e universale per i figli a carico it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Co",
       "contentHash": "fa3be178570fa915d08387a08ea52f7cad4f3d3663647f876100dbd88d63606b",
@@ -17,7 +61,7 @@
       "lastModified": null,
       "pendingReview": true,
       "lastChange": {
-        "detectedAt": "2026-11-13T17:48:57.926Z",
+        "detectedAt": "2026-11-13T17:51:45.884Z",
         "title": "Portale Inps - Assegno unico e universale per i figli a carico",
         "excerpt": "Portale Inps - Assegno unico e universale per i figli a carico it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Co"
       },
@@ -29,8 +73,8 @@
           "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/FAQ-Maggiorazione_Assegno_unico_universale.pdf",
           "contentHash": "348a016fdeea4c465d457b07b4725385033bb5e96e1596371b537550ad0bee66",
           "sizeBytes": 130314,
-          "lastSeenAt": "2026-11-16T10:21:45.701Z",
-          "analyzedAt": "2026-11-13T17:48:58.622Z",
+          "lastSeenAt": "2026-11-16T10:55:12.420Z",
+          "analyzedAt": "2026-11-13T17:51:46.040Z",
           "status": "analyzed",
           "textLength": 7867,
           "error": null
@@ -40,30 +84,20 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/FAQ-Maggiorazione_Assegno_unico_universale.pdf",
         "contentHash": "348a016fdeea4c465d457b07b4725385033bb5e96e1596371b537550ad0bee66",
         "sizeBytes": 130314,
-        "lastSeenAt": "2026-11-16T10:21:45.701Z",
-        "analyzedAt": "2026-11-13T17:48:58.622Z",
+        "lastSeenAt": "2026-11-16T10:55:12.420Z",
+        "analyzedAt": "2026-11-13T17:51:46.040Z",
         "status": "analyzed",
         "textLength": 7867,
         "error": null
       },
       "pdfError": null,
       "pendingProposal": null,
-      "proposalStatus": "error",
-      "aiError": "Quota o limite di richieste OpenAI raggiunto."
-    },
-    "milano-refezione": {
-      "status": "error",
-      "lastCheckedAt": "2026-11-16T10:21:45.037Z",
-      "lastError": "risposta HTTP 403"
-    },
-    "milano-quota-nidi": {
-      "status": "error",
-      "lastCheckedAt": "2026-11-16T10:21:45.036Z",
-      "lastError": "risposta HTTP 403"
+      "proposalStatus": "manual-review",
+      "aiError": null
     },
     "arera-bonus-sociale": {
-      "status": "error-ai",
-      "lastCheckedAt": "2026-11-16T10:21:45.034Z",
+      "status": "changed",
+      "lastCheckedAt": "2026-11-16T10:55:12.171Z",
       "title": "Arera: Bonus sociali",
       "excerpt": "Arera: Bonus sociali ITA ITA ENG Seguici su: X Linkedin Youtube Facebook Instagram Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCESSO RACCOLTE DATI Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCES",
       "contentHash": "f161ad1a914700e2b14165dc1f09ea9e282221a001b246b0aa5bae546630f3fd",
@@ -73,7 +107,7 @@
       "lastModified": null,
       "pendingReview": true,
       "lastChange": {
-        "detectedAt": "2026-11-14T12:10:35.906Z",
+        "detectedAt": "2026-11-16T10:25:45.153Z",
         "title": "Arera: Bonus sociali",
         "excerpt": "Arera: Bonus sociali ITA ITA ENG Seguici su: X Linkedin Youtube Facebook Instagram Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCESSO RACCOLTE DATI Area Operatori CONTENUTI PER SETTORI Elettricità Gas Acqua Rifiuti Teleriscaldamento ACCES"
       },
@@ -84,38 +118,12 @@
       "lastPdfAnalyzed": null,
       "pdfError": null,
       "pendingProposal": null,
-      "proposalStatus": "error",
-      "aiError": "Quota o limite di richieste OpenAI raggiunto."
-    },
-    "lombardia-bandi": {
-      "status": "error-ai",
-      "lastCheckedAt": "2026-11-16T10:21:45.035Z",
-      "title": "Home | Bandi e Servizi",
-      "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi",
-      "contentHash": "a9d431fdea8a8329f0bea289510aa212b60bfecca391d6da82148f2bd811ee19",
-      "pdfFingerprint": "",
-      "pdfLinks": [],
-      "etag": null,
-      "lastModified": null,
-      "pendingReview": true,
-      "lastChange": {
-        "detectedAt": "2026-11-16T10:21:45.035Z",
-        "title": "Home | Bandi e Servizi",
-        "excerpt": "Home | Bandi e Servizi Aiuto Accedi o Registrati Bandi e Servizi Cerca un bando o un servizio Chiudi Home Bandi Procedimenti Concorsi Gare e Affidamenti Altri servizi Comunicazioni Altri portali utili La mia area Benvenuto su Bandi e Servizi Il portale che raccoglie tutti i servi"
-      },
-      "reviewedAt": null,
-      "reviewNote": null,
-      "lastError": null,
-      "pdfDocuments": [],
-      "lastPdfAnalyzed": null,
-      "pdfError": null,
-      "pendingProposal": null,
-      "proposalStatus": "error",
-      "aiError": "Quota o limite di richieste OpenAI raggiunto."
+      "proposalStatus": "manual-review",
+      "aiError": null
     },
     "inps-adi": {
-      "status": "error-ai",
-      "lastCheckedAt": "2026-11-16T10:21:45.033Z",
+      "status": "changed",
+      "lastCheckedAt": "2026-11-16T10:55:12.165Z",
       "title": "Portale Inps - Assegno di Inclusione (ADI)",
       "excerpt": "Portale Inps - Assegno di Inclusione (ADI) it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Contributi figurativi ",
       "contentHash": "67e7a943a6be1a331c6d0a64a77c1036c05fa3cce2cef48ef7fae0c5dbb1985e",
@@ -130,7 +138,7 @@
       "lastModified": null,
       "pendingReview": true,
       "lastChange": {
-        "detectedAt": "2026-11-13T17:48:57.996Z",
+        "detectedAt": "2026-11-13T17:51:45.901Z",
         "title": "Portale Inps - Assegno di Inclusione (ADI)",
         "excerpt": "Portale Inps - Assegno di Inclusione (ADI) it Vai al menu principale Vai al contenuto principale Vai al pie' di pagina Pensione e Previdenza Pensione e Previdenza Domanda di pensione Fondi e Gestioni Ricongiunzioni e riscatti Versamento Contributi Accredito Contributi figurativi "
       },
@@ -142,8 +150,8 @@
           "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/2025/Calendario_pagamenti_ADI_settembre_dicembre_2025.pdf",
           "contentHash": "29a1d7d21a9eec563f8444c634054c72618b85f8366cf31b5946f6be1b84b9d0",
           "sizeBytes": 250664,
-          "lastSeenAt": "2026-11-16T10:21:47.465Z",
-          "analyzedAt": "2026-11-13T17:49:00.750Z",
+          "lastSeenAt": "2026-11-16T10:55:14.084Z",
+          "analyzedAt": "2026-11-13T17:51:46.848Z",
           "status": "analyzed",
           "textLength": 1216,
           "error": null
@@ -152,8 +160,8 @@
           "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/ALLEGATO_Tutorial_ADI_Istruzioni_gestione_domanda_24-06-2024.pdf",
           "contentHash": "91d906cd497f1574a534a1dcaa4f12662b272639f7b373fed6f5bb21bd95ebf3",
           "sizeBytes": 262290,
-          "lastSeenAt": "2026-11-16T10:21:46.977Z",
-          "analyzedAt": "2026-11-13T17:49:00.150Z",
+          "lastSeenAt": "2026-11-16T10:55:13.975Z",
+          "analyzedAt": "2026-11-13T17:51:46.717Z",
           "status": "analyzed",
           "textLength": 9810,
           "error": null
@@ -162,8 +170,8 @@
           "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/TEMPLATE_Tutorial_Gestione_domanda_ADI-24-06-2024.pdf",
           "contentHash": "3df8ed87e708d18b0a7ccd221b83470132a05a16e96c7473590c4976687bcbbc",
           "sizeBytes": 1696992,
-          "lastSeenAt": "2026-11-16T10:21:46.770Z",
-          "analyzedAt": "2026-11-13T17:48:59.823Z",
+          "lastSeenAt": "2026-11-16T10:55:13.909Z",
+          "analyzedAt": "2026-11-13T17:51:46.584Z",
           "status": "analyzed",
           "textLength": 8818,
           "error": null
@@ -172,8 +180,8 @@
           "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/Template_Tutorial_Invio_domanda_ADI.pdf",
           "contentHash": "c27feba4de3b82099c37a4b1123240418ac9c79db33841bba1d07015444c5793",
           "sizeBytes": 5314867,
-          "lastSeenAt": "2026-11-16T10:21:46.141Z",
-          "analyzedAt": "2026-11-13T17:48:59.582Z",
+          "lastSeenAt": "2026-11-16T10:55:13.526Z",
+          "analyzedAt": "2026-11-13T17:51:46.386Z",
           "status": "analyzed",
           "textLength": 23848,
           "error": null
@@ -183,16 +191,16 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/2025/Calendario_pagamenti_ADI_settembre_dicembre_2025.pdf",
         "contentHash": "29a1d7d21a9eec563f8444c634054c72618b85f8366cf31b5946f6be1b84b9d0",
         "sizeBytes": 250664,
-        "lastSeenAt": "2026-11-16T10:21:47.465Z",
-        "analyzedAt": "2026-11-13T17:49:00.750Z",
+        "lastSeenAt": "2026-11-16T10:55:14.084Z",
+        "analyzedAt": "2026-11-13T17:51:46.848Z",
         "status": "analyzed",
         "textLength": 1216,
         "error": null
       },
       "pdfError": null,
       "pendingProposal": null,
-      "proposalStatus": "error",
-      "aiError": "Quota o limite di richieste OpenAI raggiunto."
+      "proposalStatus": "manual-review",
+      "aiError": null
     }
   }
 }
