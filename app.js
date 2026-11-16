@@ -890,13 +890,13 @@ function renderStagingReview() {
 function renderBenefits() {
   const staleProgramCount = bonusSearch.searched
     ? bonusCatalog.filter((program) => !program.lastVerifiedAt
-      || dayDifference(program.lastVerifiedAt) < 0
-      || dayDifference(program.lastVerifiedAt) > 90).length
+      || -dayDifference(program.lastVerifiedAt) < 0
+      || -dayDifference(program.lastVerifiedAt) > 90).length
     : 0;
   const matchingPrograms = bonusSearch.searched && !bonusCatalogError
     ? bonusCatalog.filter((program) => {
       const today = dateToIso(dateOnly(new Date()));
-      const daysSinceVerification = program.lastVerifiedAt ? dayDifference(program.lastVerifiedAt) : Number.POSITIVE_INFINITY;
+      const daysSinceVerification = program.lastVerifiedAt ? -dayDifference(program.lastVerifiedAt) : Number.POSITIVE_INFINITY;
       const regionMatches = program.scope === 'nazionale'
         || (program.region && program.region === bonusSearch.region);
       const municipalityMatches = program.scope !== 'comunale'
