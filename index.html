@@ -12,7 +12,7 @@
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./styles.css">
-  <script src="./app.js" defer></script>
+  <script src="./app.js" type="module"></script>
 </head>
 <body>
   <div id="app" class="app-shell" aria-live="polite">
@@ -75,6 +75,15 @@
           <input id="deadline-amount" name="amount" inputmode="decimal" placeholder="Es. 125,50">
         </label>
       </div>
+      <p id="occurrence-edit-note" class="page-description" hidden>Modifica soltanto questa occorrenza: titolo, categoria, note, promemoria, data scadenza, cassa e importo. L’ancora e le successive non cambiano. Modifiche «questa e successive» non disponibili in questa fase.</p>
+      <div class="field-row">
+        <label class="field"><span>Cassa prevista</span><select id="deadline-cash-mode"><option value="unknown">Non ancora nota (avvisa)</option><option value="same">Stessa data della scadenza (scelta esplicita)</option><option value="date">Altra data</option></select></label>
+        <label class="field"><span>Data cassa prevista (se altra data)</span><input id="deadline-cash-date" type="date"></label>
+      </div>
+      <div class="field-row" id="series-end-fields">
+        <label class="field"><span>Termine ricorrenza: data inclusa (facoltativo)</span><input id="deadline-end" type="date"></label>
+        <label class="field"><span>Numero totale occorrenze (facoltativo, max 1200)</span><input id="deadline-count" type="number" min="1" max="1200" step="1"></label>
+      </div>
       <label class="field">
         <span>Note (facoltative)</span>
         <textarea id="deadline-notes" name="notes" rows="3" maxlength="500" placeholder="Aggiungi un dettaglio utile"></textarea>
@@ -119,6 +128,16 @@
         <button class="button button-quiet" type="button" data-close-dialog>Annulla</button>
         <button class="button button-primary" type="submit">Salva profilo</button>
       </div>
+    </form>
+  </dialog>
+  <dialog id="movement-dialog" class="dialog" aria-labelledby="movement-title">
+    <form id="movement-form" class="dialog-form">
+      <div class="dialog-heading"><h2 id="movement-title">Movimento</h2><button class="icon-button" type="button" data-close-dialog aria-label="Chiudi">×</button></div>
+      <p id="movement-description" class="page-description"></p>
+      <label class="field"><span id="movement-date-label">Data effettiva</span><input id="movement-date" type="date" required></label>
+      <label class="field"><span>Importo totale (€)</span><input id="movement-amount" inputmode="decimal" required></label>
+      <p class="form-error" id="movement-error" role="alert"></p>
+      <div class="dialog-actions"><button class="button button-quiet" type="button" data-close-dialog>Annulla</button><button class="button button-primary" type="submit">Conferma e salva</button></div>
     </form>
   </dialog>
   <input id="backup-file" class="visually-hidden" type="file" accept="application/json,.json">

@@ -16,6 +16,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
@@ -198,6 +199,18 @@ button { cursor: pointer; }
 .income-list strong { color: #29473c; font-size: 11px; }
 .income-list small { color: var(--text-muted); font-size: 10px; }
 .planning-results { display: grid; gap: 12px; margin-top: 19px; }
+.planning-results details.notice { display: block; }
+.planning-results summary { cursor: pointer; font-weight: 700; }
+.planning-results li { margin-block: 6px; overflow-wrap: anywhere; }
+.projection-table caption { padding: 12px; text-align: left; white-space: normal; color: var(--navy); }
+.income-list .toolbar { justify-content: flex-end; }
+.income-panel h2 { margin: 0; color: var(--navy); font-size: 16px; }
+button:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid #6e91b8; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .income-list li { align-items: flex-start; flex-direction: column; }
+  .income-list .toolbar { justify-content: flex-start; }
+  .card-actions { flex-wrap: wrap; }
+}
 .planning-highlight { display: grid; gap: 7px; padding: 18px; border-radius: 16px; color: #fff; background: var(--navy); }
 .planning-highlight span, .planning-highlight small { color: #d3ebe1; font-size: 11px; }
 .planning-highlight strong { font-size: 25px; letter-spacing: -.5px; }

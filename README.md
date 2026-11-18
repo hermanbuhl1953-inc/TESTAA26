@@ -79,11 +79,11 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 
 - Profilo e scadenze sono conservati nel `localStorage` di quel browser e dispositivo.
 - I dati **non sono cifrati**, sincronizzati o protetti da un account.
-- Saldo iniziale, riserva ed entrate inserite nella pianificazione restano solo in memoria temporanea: non sono salvati né inclusi nei backup e si cancellano ricaricando la pagina.
+- Saldo di riferimento datato, riserva, entrate previste, occorrenze ed effettivi sono salvati nello stesso `localStorage` e nel backup JSON versione 2. Migrazione dei backup versione 1 senza inventare date di cassa o pagamenti; verifica i dati storici e conserva prima un backup. Dettagli e applicazione locale: [`docs/PLANNING_AFFIDABILE.md`](./docs/PLANNING_AFFIDABILE.md).
 - Non inserire documenti, dati sanitari o informazioni riservate.
 - L'eliminazione dei dati del sito dal browser può cancellare le scadenze. Esporta periodicamente un backup.
 - Le voci del catalogo sono promemoria generici, non consulenza fiscale o legale: verifica date e periodicità con fonti ufficiali e personalizza i suggerimenti prima di salvarli.
-- La proiezione considera soltanto gli importi registrati nelle scadenze attive e le entrate inserite; le scadenze arretrate sono conteggiate come uscite immediate. Non include spese quotidiane o movimenti non modellati e non è una previsione finanziaria certa.
+- La proiezione considera previsioni con data di cassa esplicita ed effettivi collegati. Gli effettivi sostituiscono la previsione, le previsioni arretrate non vengono spostate a oggi: sono segnalate ed escluse finché non vengono riprogrammate o saldate. Minimo inframensile, prima criticità sotto riserva e deficit sono distinti. Non include spese quotidiane o movimenti non modellati e non è una previsione finanziaria certa.
 - Le agevolazioni mostrate sono solo piste da verificare: l'ISEE non basta a determinare un diritto. Il catalogo `assets/catalog/benefits.json` è parziale e non copre i bandi di tutti i Comuni e le Regioni; aggiungere voci solo con fonte ufficiale e data di verifica. La revisione della quota nidi di Milano è una procedura su domanda, non un contributo automatico.
 - QR PagoPA, OCR, revisione AI automatica e pubblicazione di proposte, condivisione file, account e sincronizzazione non sono implementati.
 
@@ -93,6 +93,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 index.html
 styles.css
 app.js
+planning.js
 manifest.webmanifest
 service-worker.js
 assets/catalog/deadlines.json

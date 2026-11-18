@@ -1,4 +1,25 @@
+import { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth } from './planning.js';
+
 const STORAGE_KEY = 'scadenzario.pwa.v1';
+const todayIso = () => dateToIso(dateOnly(new Date()));
+let editingOccurrence = null;
+const viewOccurrences = (end = shiftMonth(todayIso(), 12), from = '1900-01-01') => occurrences(state.deadlines, end, from);
+function findOccurrence(id, income = false) {
+  const split = id.lastIndexOf('@');
+  if (split < 0) return null;
+  const series = (income ? state.planner.incomes : state.deadlines).find(s => s.id === id.slice(0, split));
+  if (!series) return null;
+  return occurrences([series], id.slice(split + 1)).find(o => o.id === id) ?? null;
+}
+function nextSeriesCards() {
+  return state.deadlines.flatMap(s => {
+    const horizon = shiftMonth(todayIso(), 12);
+    const items = occurrences([s], s.dueDate > horizon ? s.dueDate : horizon);
+    const history = items.filter(o => o.completed);
+    const next = items.find(o => !o.completed);
+    return [...history, ...(next ? [next] : [])];
+  });
+}
 const CATALOG_URL = './assets/catalog/deadlines.json';
 const BONUS_CATALOG_URL = './assets/catalog/benefits.json';
 const BONUS_API_URL = './api/benefits';
@@ -51,6 +72,8 @@ const state = {
   deadlines: [],
   notificationsEnabled: false,
   notifiedKeys: [],
+  planner: emptyPlanner(),
+  migrationNotice: '',
 };
 let catalog = [];
 let catalogError = null;
@@ -71,12 +94,6 @@ let filters = { category: 'all', status: 'active' };
 let deferredInstallPrompt = null;
 let toastTimer = null;
 let serviceWorkerError = null;
-let planner = {
-  ready: false,
-  openingBalanceCents: 0,
-  reserveCents: 0,
-  incomes: [],
-};
 const app = document.querySelector('#app');
 const deadlineDialog = document.querySelector('#deadline-dialog');
 const profileDialog = document.querySelector('#profile-dialog');
@@ -182,9 +199,11 @@ function copyState() {
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: SCHEMA_VERSION,
     profile: state.profile,
     deadlines: state.deadlines,
+    planner: state.planner,
+    migrationNotice: state.migrationNotice,
     notificationsEnabled: state.notificationsEnabled,
     notifiedKeys: state.notifiedKeys.slice(-500),
   }));
@@ -194,6 +213,9 @@ function commit(change, successMessage) {
   const previous = copyState();
   try {
     change();
+    validatePlanner(state.planner, todayIso());
+    state.deadlines.forEach(validateDeadline);
+    if (state.planner.ready) project(state.planner, state.deadlines, todayIso(), shiftMonth(todayIso().slice(0, 8) + '01', 12));
     persist();
     render();
     if (successMessage) showToast(successMessage);
@@ -210,16 +232,15 @@ function commit(change, successMessage) {
 function loadSavedState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw === null) return;
-  const saved = JSON.parse(raw);
-  if (!saved || saved.schemaVersion !== 1 || !Array.isArray(saved.deadlines)) {
-    throw new Error('I dati salvati non hanno un formato riconosciuto. Esporta prima di ripristinare.');
-  }
+  const saved = migrate(JSON.parse(raw), todayIso());
   if (saved.profile !== null && !isValidProfile(saved.profile)) {
     throw new Error('Il profilo salvato non è valido.');
   }
   for (const deadline of saved.deadlines) validateDeadline(deadline);
   state.profile = saved.profile;
   state.deadlines = saved.deadlines;
+  state.planner = saved.planner;
+  state.migrationNotice = saved.migrationNotice || '';
   state.notificationsEnabled = saved.notificationsEnabled === true;
   state.notifiedKeys = Array.isArray(saved.notifiedKeys)
     ? saved.notifiedKeys.filter((key) => typeof key === 'string').slice(-500)
@@ -234,6 +255,7 @@ function isValidProfile(profile) {
 }
 
 function validateDeadline(deadline) {
+  validateSeries(deadline);
   if (!deadline || typeof deadline !== 'object') throw new Error('Scadenza non valida nel backup.');
   if (typeof deadline.id !== 'string' || !deadline.id) throw new Error('Scadenza senza identificativo valido.');
   if (typeof deadline.title !== 'string' || !deadline.title.trim()) throw new Error('Scadenza senza titolo.');
@@ -249,6 +271,8 @@ function validateDeadline(deadline) {
     || deadline.reminderDays.some((days) => !Number.isInteger(days) || days < 0)) {
     throw new Error('Promemoria non validi.');
   }
+  if (Object.values(deadline.overrides).some(o => o.category !== undefined && !Object.hasOwn(CATEGORY_LABELS, o.category))) throw new Error('Categoria occorrenza sconosciuta.');
+  if (Object.values(deadline.overrides).some(o => o.actual && o.actual.date > todayIso())) throw new Error('Un pagamento effettivo non può avere data futura.');
   if (typeof deadline.completed !== 'boolean' || typeof deadline.archived !== 'boolean') {
     throw new Error('Stato della scadenza non valido.');
   }
@@ -286,7 +310,7 @@ function formatAmount(cents) {
 }
 
 function deadlineStatus(deadline) {
-  if (deadline.completed) return { text: 'Completata', className: '' };
+  if (deadline.completed) return { text: deadline.actual ? 'Pagata' : deadline.done ? 'Fatta, senza movimento' : 'Completata (storico)', className: '' };
   const days = dayDifference(deadline.dueDate);
   if (days < 0) return { text: `Scaduta da ${Math.abs(days)} ${Math.abs(days) === 1 ? 'giorno' : 'giorni'}`, className: 'overdue' };
   if (days === 0) return { text: 'Scade oggi', className: 'urgent' };
@@ -392,7 +416,8 @@ function renderOnboarding() {
 }
 
 function renderHome() {
-  const active = state.deadlines.filter((deadline) => !deadline.archived && !deadline.completed);
+  const cards = nextSeriesCards();
+  const active = cards.filter((deadline) => !deadline.archived && !deadline.completed);
   const overdue = active.filter((deadline) => dayDifference(deadline.dueDate) < 0);
   const upcoming = sortDeadlines(active);
   const remainingForDay = selectedHomeDate === dateToIso(dateOnly(new Date()))
@@ -401,7 +426,7 @@ function renderHome() {
   const dateStrip = renderDateStrip();
   const categoryFilter = renderCategoryFilter();
   const statusFilter = renderStatusFilter();
-  const filtered = sortDeadlines(state.deadlines.filter((deadline) => {
+  const filtered = sortDeadlines(cards.filter((deadline) => {
     if (filters.status === 'archived') return deadline.archived;
     if (deadline.archived) return false;
     if (filters.status === 'active' && deadline.completed) return false;
@@ -463,7 +488,7 @@ function renderDateStrip() {
     const date = new Date(start);
     date.setDate(start.getDate() + index);
     const iso = dateToIso(date);
-    const hasEvent = state.deadlines.some((deadline) => !deadline.archived && !deadline.completed && deadline.dueDate === iso);
+    const hasEvent = viewOccurrences(iso, iso).some((deadline) => !deadline.archived && !deadline.completed && deadline.dueDate === iso);
     return `<button class="date-cell${iso === selectedHomeDate ? ' selected' : ''}${hasEvent ? ' has-event' : ''}" type="button" data-action="select-home-date" data-date="${iso}" aria-pressed="${iso === selectedHomeDate}">
       <span class="day">${escapeHtml(new Intl.DateTimeFormat('it-IT', { weekday: 'short' }).format(date))}</span>
       <span class="number">${date.getDate()}</span><i class="dot"></i>
@@ -508,16 +533,18 @@ function renderDeadlineCard(deadline) {
   if (status.className === 'overdue') classes.push('overdue');
   if (deadline.completed) classes.push('completed');
   const completeAction = deadline.completed ? 'reopen-deadline' : 'complete-deadline';
-  const completeLabel = deadline.completed ? 'Riapri scadenza' : 'Segna come fatta';
-  const actionButtons = deadline.archived ? '' : `
+  const completeLabel = deadline.completed ? 'Annulla completamento e riapri' : deadline.amountCents ? 'Registra pagamento effettivo' : 'Completa promemoria senza movimento';
+  const actionButtons = deadline.archived ? `<button class="text-button" type="button" data-action="restore-deadline" data-id="${escapeHtml(deadline.seriesId)}">Riattiva serie</button>` : `
     <div class="card-actions">
+      ${!deadline.amountCents && !deadline.completed ? `<button class="text-button" type="button" data-action="record-deadline" data-id="${escapeHtml(deadline.id)}">Registra pagamento</button>` : ''}
       <button class="card-action" type="button" data-action="${completeAction}" data-id="${escapeHtml(deadline.id)}" aria-label="${completeLabel}" title="${completeLabel}">${icon('check')}</button>
+      ${deadline.completed && !deadline.done ? `<button class="text-button" type="button" data-action="complete-deadline" data-id="${escapeHtml(deadline.id)}">Correggi effettivo</button>` : ''}
       <button class="card-action" type="button" data-action="edit-deadline" data-id="${escapeHtml(deadline.id)}" aria-label="Modifica ${escapeHtml(deadline.title)}" title="Modifica">${icon('edit')}</button>
-      <button class="card-action" type="button" data-action="archive-deadline" data-id="${escapeHtml(deadline.id)}" aria-label="Archivia ${escapeHtml(deadline.title)}" title="Archivia">${icon('archive')}</button>
+      <button class="card-action" type="button" data-action="archive-deadline" data-id="${escapeHtml(deadline.id)}" aria-label="Archivia intera serie ${escapeHtml(deadline.title)}" title="Archivia intera serie">${icon('archive')}</button>
     </div>`;
   return `<article class="${classes.join(' ')}">
     <span class="date-icon">${icon('calendar')}<small>${escapeHtml(new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(date))}</small></span>
-    <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''}</p></div>
+    <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''} · Cassa: ${deadline.cashDate ? escapeHtml(formatDate(deadline.cashDate)) : 'non nota'}${deadline.actual ? ` · Pagato ${escapeHtml(formatAmount(deadline.actual.amountCents))} il ${escapeHtml(formatDate(deadline.actual.date))}` : deadline.legacyCompleted ? ' · Storico: data/importo effettivi sconosciuti' : ''}</p></div>
     <div class="deadline-right">${amount ? `<span class="deadline-amount">${escapeHtml(amount)}</span>` : ''}<span class="status-pill ${status.className}">${escapeHtml(status.text)}</span>${actionButtons}</div>
   </article>`;
 }
@@ -538,7 +565,8 @@ function renderCalendar() {
   const monthName = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' }).format(calendarMonth);
   const firstDay = new Date(year, month, 1);
   const gridStart = new Date(year, month, 1 - ((firstDay.getDay() + 6) % 7));
-  const activeDeadlines = state.deadlines.filter((deadline) => !deadline.archived);
+  const gridEnd = dateToIso(addDays(gridStart, 41));
+  const activeDeadlines = viewOccurrences(gridEnd, dateToIso(gridStart)).filter((deadline) => !deadline.archived);
   const cells = Array.from({ length: 42 }, (_, index) => {
     const date = new Date(gridStart);
     date.setDate(gridStart.getDate() + index);
@@ -627,154 +655,47 @@ function renderProfile() {
 }
 
 function renderPlanning() {
-  const projection = planner.ready ? calculateProjection() : null;
+  const planner = state.planner;
+  const end = shiftMonth(todayIso().slice(0, 8) + '01', 12);
+  const projection = planner.ready ? project(planner, state.deadlines, todayIso(), end) : null;
+  const incomeItems = planner.incomes.flatMap(s => occurrences([s], s.dueDate > end ? s.dueDate : end));
   return `
-    <p class="eyebrow">GESTIONE DEL BUDGET</p><h1 class="page-title">Pianificazione</h1>
-    <p class="page-description">Imposta il saldo disponibile e le entrate ricorrenti per stimare l'andamento dei prossimi 12 mesi, usando le scadenze inserite.</p>
-    <div class="notice">${icon('info')} Le cifre di questa sezione restano solo in memoria temporanea: non sono salvate, cifrate o incluse nei backup e si cancellano ricaricando la pagina.</div>
+    <p class="eyebrow">FLUSSI DI CASSA</p><h1 class="page-title">Pianificazione</h1>
+    <p class="page-description">Saldo, riserva ed entrate sono salvati su questo browser e inclusi nel backup JSON. Nessuna sincronizzazione o cifratura.</p>
+    ${state.migrationNotice ? `<div class="notice">${escapeHtml(state.migrationNotice)}</div>` : ''}
     <form id="planner-form" class="settings-card planner-form">
-      <h3>Situazione iniziale</h3>
+      <h3>Saldo di riferimento</h3>
       <div class="field-row">
-        <label class="field"><span>Saldo disponibile (€)</span><input name="openingBalance" inputmode="decimal" required placeholder="es. 2.500,00" value="${planner.ready ? escapeHtml(formatCentsForInput(planner.openingBalanceCents)) : ''}"></label>
-        <label class="field"><span>Riserva minima da non usare (€)</span><input name="reserve" inputmode="decimal" required placeholder="es. 500,00" value="${planner.ready ? escapeHtml(formatCentsForInput(planner.reserveCents)) : ''}"></label>
+        <label class="field"><span>Saldo disponibile (€; anche negativo)</span><input name="openingBalance" inputmode="decimal" required value="${planner.ready ? escapeHtml(formatCentsForInput(planner.openingBalanceCents)) : ''}"></label>
+        <label class="field"><span>Riserva minima (€)</span><input name="reserve" inputmode="decimal" required value="${escapeHtml(formatCentsForInput(planner.reserveCents))}"></label>
+        <label class="field"><span>Data del saldo</span><input name="balanceDate" type="date" max="${todayIso()}" required value="${escapeHtml(planner.balanceDate ?? todayIso())}"></label>
+        <label class="field"><span>Effettivi della stessa data del saldo</span><select name="sameDay" required><option value="">Scegli esplicitamente</option><option value="included"${planner.sameDayActualsIncluded === true ? ' selected' : ''}>Tutti già inclusi nel saldo</option><option value="excluded"${planner.sameDayActualsIncluded === false ? ' selected' : ''}>Nessuno incluso: applicali</option></select></label>
       </div>
-      <button class="button button-primary" type="submit">${planner.ready ? 'Aggiorna proiezione' : 'Calcola proiezione'}</button>
+      <p class="page-description">Prima della data: effettivi assorbiti. Dopo: applicati anche se già passati rispetto a oggi. Per una giornata inclusa solo in parte, scegli un saldo di riferimento di un altro giorno. Ogni nuovo saldo richiede riconciliazione dei movimenti.</p>
+      <button class="button button-primary" type="submit">Salva saldo e riserva</button>
     </form>
-    ${planner.ready ? `
-      <section class="settings-card income-panel">
-        <h3>Entrate ricorrenti</h3>
-        <p>Inserisci importi netti e giorno di accredito. Le entrate passate nel mese corrente non vengono conteggiate una seconda volta.</p>
-        ${planner.incomes.length
-          ? `<ul class="income-list">${planner.incomes.map((income) => `<li><span><strong>${escapeHtml(income.name)}</strong><small>${formatAmount(income.amountCents)} · giorno ${income.payDay} del mese</small></span><button class="text-button" type="button" data-action="remove-income" data-id="${escapeHtml(income.id)}" aria-label="Rimuovi ${escapeHtml(income.name)}">Rimuovi</button></li>`).join('')}</ul>`
-          : '<p class="planner-empty">Nessuna entrata ricorrente inserita: la proiezione considera solo le scadenze.</p>'}
-        <form id="income-form" class="income-form">
-          <label class="field"><span>Descrizione</span><input name="name" maxlength="60" required placeholder="es. Stipendio"></label>
-          <label class="field"><span>Importo netto (€)</span><input name="amount" inputmode="decimal" required placeholder="es. 1.500,00"></label>
-          <label class="field"><span>Giorno accredito</span><select name="payDay">${Array.from({ length: 28 }, (_, index) => `<option value="${index + 1}">${index + 1}</option>`).join('')}</select></label>
-          <button class="button button-quiet" type="submit">${icon('plus')}Aggiungi entrata</button>
-        </form>
-      </section>
-      <section class="planning-results">
-        <div class="planning-highlight">
-          <span>Margine prudenziale stimato</span>
-          <strong>${formatAmount(Math.max(0, projection.lowestBalanceCents - planner.reserveCents))}</strong>
-          <small>Saldo minimo previsto meno la riserva impostata</small>
-        </div>
-        <div class="notice">${icon('info')} Stima indicativa basata solo su scadenze attive con importo e sulle entrate che hai inserito. Le scadenze arretrate sono conteggiate come uscite immediate. Non considera spese quotidiane, variazioni di importo o movimenti non registrati e non è consulenza finanziaria.</div>
-        ${projection.unpriced.length || projection.skipped.length
-          ? `<div class="notice warning">${icon('info')} ${projection.unpriced.length ? `Importo non inserito: ${projection.unpriced.map(escapeHtml).join(', ')}. ` : ''}${projection.skipped.length ? `Non proiettate per data troppo lontana o ricorrenza oltre il limite di calcolo: ${projection.skipped.map(escapeHtml).join(', ')}.` : ''}</div>`
-          : ''}
-        ${projection.lowestBalanceCents < planner.reserveCents
-          ? `<div class="notice error">${icon('info')} In base ai dati inseriti, la proiezione scende sotto la riserva minima il ${formatDate(projection.lowestDate, { day: 'numeric', month: 'long', year: 'numeric' })}. Verifica le cifre: non è una previsione certa.</div>`
-          : ''}
-        <div class="section-heading"><div><h2>Proiezione mensile</h2><p>Saldo stimato a fine mese, in base ai movimenti registrati</p></div></div>
-        <div class="projection-table-wrap"><table class="projection-table">
-          <thead><tr><th>Mese</th><th>Entrate</th><th>Scadenze</th><th>Saldo previsto</th><th>Margine vs riserva</th></tr></thead>
-          <tbody>${projection.months.map((month) => `<tr><th scope="row">${escapeHtml(month.label)}</th><td>${formatAmount(month.incomeCents)}</td><td>${formatAmount(month.expensesCents)}</td><td>${formatAmount(month.endingBalanceCents)}</td><td class="${month.endingBalanceCents < planner.reserveCents ? 'negative' : ''}">${formatAmount(month.endingBalanceCents - planner.reserveCents)}</td></tr>`).join('')}</tbody>
-        </table></div>
-      </section>` : ''}
-    ${renderInstallBanner()}`;
-}
-
-function calculateProjection() {
-  const today = dateOnly(new Date());
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 12, 0);
-  const endDate = dateToIso(lastDay);
-  const events = [];
-  const unpriced = new Set();
-  const skipped = new Set();
-  const todayIso = dateToIso(today);
-
-  for (const deadline of state.deadlines) {
-    if (deadline.archived || deadline.completed) continue;
-    let dueDate = deadline.dueDate;
-    if (dueDate < todayIso) {
-      if (deadline.amountCents > 0) {
-        events.push({
-          date: todayIso,
-          amountCents: -deadline.amountCents,
-          label: `${deadline.title} (arretrata)`,
-        });
-      } else {
-        unpriced.add(deadline.title);
-      }
-      if (deadline.recurrenceMonths === 0) continue;
-      let iterations = 0;
-      while (dueDate < todayIso && iterations < 1200) {
-        dueDate = addMonthsClamped(dueDate, deadline.recurrenceMonths);
-        iterations += 1;
-      }
-      if (dueDate < todayIso) {
-        skipped.add(deadline.title);
-        continue;
-      }
-    }
-    if (dueDate < todayIso || dueDate > endDate) continue;
-    if (!deadline.amountCents) unpriced.add(deadline.title);
-    let occurrences = 0;
-    while (dueDate <= endDate && occurrences < 13) {
-      if (deadline.amountCents > 0) {
-        events.push({
-          date: dueDate,
-          amountCents: -deadline.amountCents,
-          label: deadline.title,
-        });
-      }
-      if (!deadline.recurrenceMonths) break;
-      dueDate = addMonthsClamped(dueDate, deadline.recurrenceMonths);
-      occurrences += 1;
-    }
-    if (occurrences >= 13 && dueDate <= endDate) skipped.add(deadline.title);
-  }
-
-  for (const income of planner.incomes) {
-    for (let monthOffset = 0; monthOffset < 12; monthOffset += 1) {
-      const month = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-      const incomeDate = dateToIso(new Date(month.getFullYear(), month.getMonth(), income.payDay));
-      if (incomeDate >= dateToIso(today) && incomeDate <= endDate) {
-        events.push({ date: incomeDate, amountCents: income.amountCents, label: income.name });
-      }
-    }
-  }
-
-  events.sort((left, right) => left.date.localeCompare(right.date));
-  const months = [];
-  let balance = planner.openingBalanceCents;
-  let lowestBalanceCents = balance;
-  let lowestDate = dateToIso(today);
-  let eventIndex = 0;
-  for (let monthOffset = 0; monthOffset < 12; monthOffset += 1) {
-    const firstOfMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-    const monthKey = `${firstOfMonth.getFullYear()}-${String(firstOfMonth.getMonth() + 1).padStart(2, '0')}`;
-    const monthEnd = dateToIso(new Date(firstOfMonth.getFullYear(), firstOfMonth.getMonth() + 1, 0));
-    let incomeCents = 0;
-    let expensesCents = 0;
-    while (eventIndex < events.length && events[eventIndex].date <= monthEnd) {
-      const event = events[eventIndex];
-      balance += event.amountCents;
-      if (event.amountCents > 0) incomeCents += event.amountCents;
-      else expensesCents -= event.amountCents;
-      if (balance < lowestBalanceCents) {
-        lowestBalanceCents = balance;
-        lowestDate = event.date;
-      }
-      eventIndex += 1;
-    }
-    const monthDate = new Date(`${monthKey}-01T00:00:00`);
-    months.push({
-      label: new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' }).format(monthDate),
-      incomeCents,
-      expensesCents,
-      endingBalanceCents: balance,
-    });
-  }
-  return {
-    months,
-    lowestBalanceCents,
-    lowestDate,
-    unpriced: [...unpriced],
-    skipped: [...skipped],
-  };
+    <section class="settings-card income-panel">
+      <h2>Entrate previste</h2><p>Non sono incassi automatici. Le previsioni arretrate restano da verificare. Il catalogo bonus non alimenta il planning.</p>
+      <form id="income-form" class="planner-form">
+        <div class="field-row">
+          <label class="field"><span>Descrizione</span><input name="name" maxlength="60" required></label>
+          <label class="field"><span>Importo netto (€)</span><input name="amount" inputmode="decimal" required></label>
+          <label class="field"><span>Prima data prevista di cassa</span><input name="date" type="date" required></label>
+          <label class="field"><span>Ricorrenza</span><select name="months"><option value="0">Una tantum</option><option value="1">Mensile</option><option value="3">Trimestrale</option><option value="12">Annuale</option></select></label>
+          <label class="field"><span>Termine per data (facoltativo)</span><input name="endDate" type="date"></label>
+          <label class="field"><span>Numero occorrenze (facoltativo)</span><input name="count" type="number" min="1" max="1200"></label>
+        </div><button class="button button-quiet" type="submit">Aggiungi previsione</button>
+      </form>
+      <ul class="income-list">${incomeItems.map(o => `<li><span><strong>${escapeHtml(o.name)}</strong><small>${escapeHtml(formatDate(o.dueDate))} · ${formatAmount(o.amountCents)} · ${o.actual ? `Incassato ${formatAmount(o.actual.amountCents)} il ${escapeHtml(formatDate(o.actual.date))}` : 'Previsto, non incassato'}</small></span><div class="toolbar"><button class="text-button" type="button" data-action="actual-income" data-id="${escapeHtml(o.id)}">${o.actual ? 'Correggi incasso' : 'Registra incasso'}</button>${o.actual ? `<button class="text-button" type="button" data-action="undo-income" data-id="${escapeHtml(o.id)}">Annulla incasso</button>` : `<button class="text-button" type="button" data-action="edit-income" data-id="${escapeHtml(o.id)}">Modifica singola</button>`}<button class="text-button" type="button" data-action="${o.archived ? 'restore-income' : 'remove-income'}" data-id="${escapeHtml(o.seriesId)}">${o.archived ? 'Riattiva serie archiviata' : 'Archivia serie'}</button></div></li>`).join('')}</ul>
+    </section>
+    ${projection ? `<section class="planning-results">
+      <div class="planning-highlight"><span>Minimo inframensile stimato (dal saldo di riferimento)</span><strong>${formatAmount(projection.minimumCents)}</strong><small>Il ${escapeHtml(formatDate(projection.minimumDate))} · Margine rispetto alla riserva: ${formatAmount(projection.marginCents)} · Deficit sotto zero: ${formatAmount(projection.deficitCents)}</small></div>
+      <div class="notice${projection.firstCriticalDate ? ' error' : ''}">${projection.firstCriticalDate ? `Prima criticità sotto riserva: ${escapeHtml(formatDate(projection.firstCriticalDate))}.` : 'Nessuna criticità sotto riserva nei movimenti noti.'} Il giorno del minimo è distinto dalla prima criticità. Saldo finale: ${formatAmount(projection.endingBalanceCents)}.</div>
+      <div class="notice">Stima parziale fino al ${escapeHtml(formatDate(end, { day: 'numeric', month: 'long', year: 'numeric' }))}. Nessun arretrato viene spostato automaticamente a oggi. Senza orari, uscite prima delle entrate dello stesso giorno (prudenziale). I dati mancanti possono peggiorare il risultato; non include spese quotidiane o non registrate. Non è consulenza finanziaria.</div>
+      ${projection.warnings.length ? `<details class="notice error"><summary>${projection.warnings.length} dati mancanti o movimenti da riconciliare (stima incompleta)</summary><ul>${projection.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul></details>` : ''}
+      <div class="projection-table-wrap"><table class="projection-table"><caption>Riepilogo mensile; ultimo mese limitato alla data finale indicata</caption><thead><tr><th scope="col">Mese</th><th scope="col">Entrate</th><th scope="col">Uscite</th><th scope="col">Saldo finale</th><th scope="col">Minimo inframensile</th></tr></thead><tbody>${projection.months.map(m => `<tr><th scope="row">${escapeHtml(formatDate(m.month, { month: 'long', year: 'numeric' }))}</th><td>${formatAmount(m.incomeCents)}</td><td>${formatAmount(m.expensesCents)}</td><td>${formatAmount(m.endingBalanceCents)}</td><td class="${m.minimumCents < planner.reserveCents ? 'negative' : ''}">${formatAmount(m.minimumCents)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="projection-table-wrap"><table class="projection-table"><caption>Movimenti applicati: gli effettivi sostituiscono la previsione collegata</caption><thead><tr><th scope="col">Data</th><th scope="col">Movimento</th><th scope="col">Tipo</th><th scope="col">Importo</th><th scope="col">Saldo</th></tr></thead><tbody>${projection.rows.map(r => `<tr><th scope="row">${escapeHtml(formatDate(r.date))}</th><td>${escapeHtml(r.label)}</td><td>${r.actual ? 'Effettivo' : 'Previsione'}</td><td>${formatAmount(r.amountCents)}</td><td class="${r.balanceCents < planner.reserveCents ? 'negative' : ''}">${formatAmount(r.balanceCents)}</td></tr>`).join('')}</tbody></table></div>
+    </section>` : ''}`;
 }
 
 function renderSourceMonitoring() {
@@ -915,7 +836,15 @@ function renderBenefits() {
 }
 
 function openDeadlineForm(deadline = null, defaults = {}) {
+  editingOccurrence = deadline;
   deadlineForm.reset();
+  for (const selector of ['#deadline-recurrence', '#deadline-end', '#deadline-count']) document.querySelector(selector).disabled = Boolean(deadline);
+  document.querySelector('#occurrence-edit-note').hidden = !deadline;
+  document.querySelector('#series-end-fields').hidden = Boolean(deadline);
+  document.querySelector('#deadline-cash-mode').value = deadline?.cashMode ?? 'unknown';
+  document.querySelector('#deadline-cash-date').value = deadline?.cashDate ?? '';
+  document.querySelector('#deadline-end').value = deadline?.endDate ?? '';
+  document.querySelector('#deadline-count').value = deadline?.count ?? '';
   document.querySelector('#deadline-error').classList.remove('visible');
   document.querySelector('#deadline-error').textContent = '';
   document.querySelector('#deadline-id').value = deadline?.id ?? '';
@@ -932,9 +861,9 @@ function openDeadlineForm(deadline = null, defaults = {}) {
   deadlineForm.querySelectorAll('input[name="reminder"]').forEach((input) => {
     input.checked = reminderDays.includes(Number(input.value));
   });
-  document.querySelector('#deadline-dialog-title').textContent = deadline ? 'Modifica scadenza' : 'Nuova scadenza';
+  document.querySelector('#deadline-dialog-title').textContent = deadline ? 'Modifica singola occorrenza' : 'Nuova scadenza';
   deadlineDialog.showModal();
-  document.querySelector('#deadline-title').focus();
+  document.querySelector(deadline ? '#deadline-date' : '#deadline-title').focus();
 }
 
 function addDays(date, count) {
@@ -944,9 +873,15 @@ function addDays(date, count) {
 }
 
 function formatCentsForInput(cents) {
-  const euros = Math.floor(cents / 100);
-  const remainder = String(cents % 100).padStart(2, '0');
-  return `${euros},${remainder}`;
+  const euros = Math.floor(Math.abs(cents) / 100);
+  const remainder = String(Math.abs(cents) % 100).padStart(2, '0');
+  return `${cents < 0 ? '-' : ''}${euros},${remainder}`;
+}
+
+function parseSignedCents(value) {
+  const text = value.trim();
+  const cents = parseAmountCents(text.startsWith('-') ? text.slice(1) : text);
+  return cents === null ? null : text.startsWith('-') ? -cents : cents;
 }
 
 function parseAmountCents(input) {
@@ -997,6 +932,26 @@ function handleDeadlineSubmit(event) {
     return;
   }
 
+  const cashMode = document.querySelector('#deadline-cash-mode').value;
+  const cashDate = document.querySelector('#deadline-cash-date').value || null;
+  if (cashMode === 'date' && !parseIsoDate(cashDate)) {
+    errorElement.textContent = 'Indica la data di cassa prevista.';
+    errorElement.classList.add('visible');
+    return;
+  }
+  if (editingOccurrence) {
+    const occurrence = editingOccurrence;
+    const saved = commit(() => {
+      const series = state.deadlines.find(s => s.id === occurrence.seriesId);
+      series.overrides[occurrence.key] = { ...series.overrides[occurrence.key], dueDate, cashMode, cashDate, amountCents,
+        title, category: document.querySelector('#deadline-category').value,
+        notes: document.querySelector('#deadline-notes').value.trim(),
+        reminderDays: [...deadlineForm.querySelectorAll('input[name="reminder"]:checked')].map(input => Number(input.value)) };
+      if (amountCents > 0) series.overrides[occurrence.key].done = false;
+    }, 'Singola occorrenza aggiornata. Le successive mantengono l’ancora originale.');
+    if (saved) deadlineDialog.close();
+    return;
+  }
   const existingId = document.querySelector('#deadline-id').value;
   const existing = existingId ? state.deadlines.find((item) => item.id === existingId) : null;
   const now = localDateTime();
@@ -1009,6 +964,11 @@ function handleDeadlineSubmit(event) {
     category: document.querySelector('#deadline-category').value,
     dueDate,
     recurrenceMonths: Number(document.querySelector('#deadline-recurrence').value),
+    cashMode,
+    cashDate,
+    endDate: document.querySelector('#deadline-end').value || null,
+    count: document.querySelector('#deadline-count').value ? Number(document.querySelector('#deadline-count').value) : null,
+    overrides: {},
     amountCents,
     notes: document.querySelector('#deadline-notes').value.trim(),
     reminderDays,
@@ -1018,7 +978,11 @@ function handleDeadlineSubmit(event) {
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
-  validateDeadline(deadline);
+  try { validateDeadline(deadline); } catch (error) {
+    errorElement.textContent = error.message;
+    errorElement.classList.add('visible');
+    return;
+  }
   const saved = commit(() => {
     const index = state.deadlines.findIndex((item) => item.id === deadline.id);
     if (index >= 0) state.deadlines[index] = deadline;
@@ -1032,40 +996,72 @@ function renderFatalError(error) {
 }
 
 function completeDeadline(id) {
-  const deadline = state.deadlines.find((item) => item.id === id && !item.archived);
-  if (!deadline) return;
-  if (deadline.recurrenceMonths > 0) {
-    const nextDueDate = addMonthsClamped(deadline.dueDate, deadline.recurrenceMonths);
-    commit(() => {
-      deadline.dueDate = nextDueDate;
-      deadline.completed = false;
-      deadline.updatedAt = localDateTime();
-    }, `Completata. Prossima scadenza: ${formatDate(nextDueDate, { day: 'numeric', month: 'long', year: 'numeric' })}.`);
+  const o = findOccurrence(id);
+  if (!o) return;
+  if (o.amountCents || o.actual || o.legacyCompleted) { openMovement(id); return; }
+  if (!window.confirm('Completare soltanto il promemoria, senza registrare un pagamento? Se esiste una spesa, annulla e usa il pulsante «Registra pagamento» oppure inserisci prima l’importo.')) return;
+  commit(() => {
+    const s = state.deadlines.find(s => s.id === o.seriesId);
+    s.overrides[o.key] = { ...s.overrides[o.key], done: true };
+  }, 'Promemoria completato senza movimento di cassa.');
+}
+function reopenDeadline(id) { undoActual(id); }
+function openMovement(id, income = false, forecast = false) {
+  const o = findOccurrence(id, income);
+  if (!o) return;
+  const form = document.querySelector('#movement-form');
+  form.dataset.id = id;
+  form.dataset.income = String(income);
+  form.dataset.forecast = String(forecast);
+  form.reset();
+  document.querySelector('#movement-title').textContent = forecast ? 'Modifica singola previsione' : income ? 'Incasso effettivo totale' : 'Pagamento effettivo totale';
+  document.querySelector('#movement-description').textContent = `${o.title ?? o.name} · Occorrenza ${o.key}. ${forecast ? 'Le successive restano invariate.' : 'Sostituisce la previsione collegata, non crea un secondo movimento. Correggi qui data e importo; annulla dall’elenco per riaprire.'}`;
+  document.querySelector('#movement-date-label').textContent = forecast ? 'Nuova data prevista di cassa' : 'Data effettiva (obbligatoria, non futura)';
+  const date = document.querySelector('#movement-date');
+  date.value = forecast ? o.cashDate ?? '' : o.actual?.date ?? '';
+  if (forecast) date.removeAttribute('max'); else date.max = todayIso();
+  document.querySelector('#movement-amount').value = formatCentsForInput(o.actual?.amountCents ?? o.amountCents);
+  document.querySelector('#movement-error').classList.remove('visible');
+  document.querySelector('#movement-dialog').showModal();
+  date.focus();
+}
+function handleMovementSubmit(event) {
+  event.preventDefault();
+  const { id, income, forecast } = event.target.dataset;
+  const isIncome = income === 'true';
+  const o = findOccurrence(id, isIncome);
+  const date = document.querySelector('#movement-date').value;
+  const amountCents = parseAmountCents(document.querySelector('#movement-amount').value);
+  const error = document.querySelector('#movement-error');
+  if (!o || !parseIsoDate(date) || forecast !== 'true' && date > todayIso() || amountCents === null || amountCents <= 0) {
+    error.textContent = 'Inserisci una data valida (non futura per un effettivo) e un importo totale positivo.';
+    error.classList.add('visible');
     return;
   }
-  commit(() => {
-    deadline.completed = true;
-    deadline.updatedAt = localDateTime();
-  }, 'Scadenza segnata come completata.');
+  const saved = commit(() => {
+    const list = isIncome ? state.planner.incomes : state.deadlines;
+    const index = list.findIndex(s => s.id === o.seriesId);
+    if (forecast === 'true') {
+      list[index].overrides[o.key] = { ...list[index].overrides[o.key], cashMode: 'date', cashDate: date, amountCents };
+    } else list[index] = setOccurrenceActual(list[index], o.key, { date, amountCents }, todayIso());
+  }, forecast === 'true' ? 'Previsione aggiornata.' : 'Effettivo salvato. Verifica la riconciliazione con il saldo di riferimento.');
+  if (saved) document.querySelector('#movement-dialog').close();
 }
-
-function reopenDeadline(id) {
-  const deadline = state.deadlines.find((item) => item.id === id && !item.archived);
-  if (!deadline) return;
+function undoActual(id, income = false) {
+  const o = findOccurrence(id, income);
+  if (!o || !window.confirm('Annullare l’effettivo e riaprire questa occorrenza? La previsione torna attiva; verifica anche il saldo di riferimento.')) return;
   commit(() => {
-    deadline.completed = false;
-    deadline.updatedAt = localDateTime();
-  }, 'Scadenza riaperta.');
+    const list = income ? state.planner.incomes : state.deadlines;
+    const index = list.findIndex(s => s.id === o.seriesId);
+    list[index] = setOccurrenceActual(list[index], o.key, null, todayIso());
+  }, 'Effettivo annullato, occorrenza riaperta.');
 }
-
 function archiveDeadline(id) {
-  const deadline = state.deadlines.find((item) => item.id === id && !item.archived);
-  if (!deadline) return;
-  if (!window.confirm(`Archiviare “${deadline.title}”? Potrai recuperarla importando un backup precedente.`)) return;
+  const o = findOccurrence(id);
+  if (!o || !window.confirm(`Archiviare l’intera serie “${o.title}”? Gli effettivi restano nel calcolo e nello storico.`)) return;
   commit(() => {
-    deadline.archived = true;
-    deadline.updatedAt = localDateTime();
-  }, 'Scadenza archiviata.');
+    state.deadlines.find(s => s.id === o.seriesId).archived = true;
+  }, 'Serie archiviata, storico conservato.');
 }
 
 function openCatalogItem(id) {
@@ -1094,7 +1090,9 @@ function editProfile() {
 function exportBackup() {
   const backup = {
     app: 'Scadenzario',
-    schemaVersion: 1,
+    schemaVersion: SCHEMA_VERSION,
+    planner: state.planner,
+    migrationNotice: state.migrationNotice,
     exportedAt: localDateTime(),
     profile: state.profile,
     deadlines: state.deadlines,
@@ -1114,11 +1112,12 @@ function exportBackup() {
 }
 
 function validateBackup(backup) {
-  if (!backup || backup.app !== 'Scadenzario' || backup.schemaVersion !== 1) {
+  if (!backup || backup.app !== 'Scadenzario' || ![1, SCHEMA_VERSION].includes(backup.schemaVersion)) {
     throw new Error('Il file non è un backup Scadenzario supportato.');
   }
   if (!isValidProfile(backup.profile)) throw new Error('Il profilo nel backup non è valido.');
   if (!Array.isArray(backup.deadlines)) throw new Error('Il backup non contiene un elenco valido di scadenze.');
+  validatePlanner(backup.planner, todayIso());
   const ids = new Set();
   backup.deadlines.forEach((deadline) => {
     validateDeadline(deadline);
@@ -1129,13 +1128,18 @@ function validateBackup(backup) {
 
 async function restoreBackup(file) {
   try {
+    if (file.size > 5 * 1024 * 1024) throw new Error('Backup oltre il limite di 5 MB.');
     const text = await file.text();
-    const backup = JSON.parse(text);
+    const parsed = JSON.parse(text);
+    if (parsed.app !== 'Scadenzario') throw new Error('Non è un backup Scadenzario.');
+    const backup = migrate(parsed, todayIso());
     validateBackup(backup);
     if (!window.confirm(`Il backup contiene ${backup.deadlines.length} scadenze. Sostituire tutti i dati attualmente presenti nel browser?`)) return;
     commit(() => {
       state.profile = backup.profile;
       state.deadlines = backup.deadlines;
+      state.planner = backup.planner;
+      state.migrationNotice = backup.migrationNotice || '';
       state.notificationsEnabled = backup.notificationsEnabled === true;
       state.notifiedKeys = Array.isArray(backup.notifiedKeys)
         ? backup.notifiedKeys.filter((key) => typeof key === 'string').slice(-500)
@@ -1178,7 +1182,7 @@ function checkReminders() {
   if (!state.notificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
   const today = dateToIso(dateOnly(new Date()));
   const nextKeys = [];
-  for (const deadline of state.deadlines) {
+  for (const deadline of viewOccurrences(shiftMonth(today, 2), today)) {
     if (deadline.archived || deadline.completed) continue;
     const daysRemaining = dayDifference(deadline.dueDate);
     if (!deadline.reminderDays.includes(daysRemaining)) continue;
@@ -1234,10 +1238,13 @@ function handleClick(event) {
       openDeadlineForm(null, button.dataset.date ? { dueDate: button.dataset.date } : {});
       break;
     case 'edit-deadline': {
-      const deadline = state.deadlines.find((item) => item.id === id);
+      const deadline = findOccurrence(id);
       if (deadline) openDeadlineForm(deadline);
       break;
     }
+    case 'record-deadline':
+      openMovement(id);
+      break;
     case 'complete-deadline':
       completeDeadline(id);
       break;
@@ -1284,9 +1291,25 @@ function handleClick(event) {
     case 'discard-staging':
       resolveStagingEntry(button.dataset.sourceId, 'discard');
       break;
+    case 'restore-deadline':
+      commit(() => { state.deadlines.find(s => s.id === id).archived = false; }, 'Serie riattivata.');
+      break;
+    case 'actual-income':
+      openMovement(id, true);
+      break;
+    case 'undo-income':
+      undoActual(id, true);
+      break;
+    case 'edit-income':
+      openMovement(id, true, true);
+      break;
+    case 'restore-income':
+      commit(() => { state.planner.incomes.find(s => s.id === id).archived = false; }, 'Entrata riattivata.');
+      break;
     case 'remove-income':
-      planner.incomes = planner.incomes.filter((income) => income.id !== id);
-      render();
+      if (window.confirm('Archiviare questa serie di entrate? Gli incassi già registrati restano nel calcolo e nel backup.')) commit(() => {
+        state.planner.incomes.find(income => income.id === id).archived = true;
+      }, 'Serie archiviata, storico conservato.');
       break;
     case 'install-app':
       installApp();
@@ -1328,33 +1351,36 @@ function handleSubmit(event) {
     }, 'Profilo creato. Ora puoi aggiungere la prima scadenza.');
   }
   if (event.target.id === 'deadline-form') handleDeadlineSubmit(event);
+  if (event.target.id === 'movement-form') handleMovementSubmit(event);
   if (event.target.id === 'planner-form') {
     event.preventDefault();
-    const formData = new FormData(event.target);
-    const openingBalanceCents = parseAmountCents(String(formData.get('openingBalance') ?? ''));
-    const reserveCents = parseAmountCents(String(formData.get('reserve') ?? ''));
-    if (openingBalanceCents === null || reserveCents === null) {
-      showToast('Inserisci importi validi e non negativi.', true);
+    const data = new FormData(event.target);
+    const openingBalanceCents = parseSignedCents(String(data.get('openingBalance') ?? ''));
+    const reserveCents = parseAmountCents(String(data.get('reserve') ?? ''));
+    const balanceDate = String(data.get('balanceDate'));
+    const sameDay = String(data.get('sameDay'));
+    if (openingBalanceCents === null || reserveCents === null || !parseIsoDate(balanceDate) || balanceDate > todayIso() || !['included', 'excluded'].includes(sameDay)) {
+      showToast('Controlla importi, data non futura e inclusione degli effettivi del giorno.', true);
       return;
     }
-    planner.openingBalanceCents = openingBalanceCents;
-    planner.reserveCents = reserveCents;
-    planner.ready = true;
-    render();
+    if (state.planner.ready && !window.confirm('Nuovo saldo: riconcilia tutti gli effettivi. Quelli precedenti alla data saranno assorbiti, quelli successivi applicati; per lo stesso giorno vale la scelta esplicita. Confermi di aver verificato per evitare omissioni o doppi conteggi?')) return;
+    commit(() => {
+      Object.assign(state.planner, { openingBalanceCents, reserveCents, balanceDate, sameDayActualsIncluded: sameDay === 'included', ready: true });
+    }, 'Saldo e riserva salvati.');
   }
   if (event.target.id === 'income-form') {
     event.preventDefault();
-    const formData = new FormData(event.target);
-    const name = String(formData.get('name') ?? '').trim();
-    const amountCents = parseAmountCents(String(formData.get('amount') ?? ''));
-    const payDay = Number(formData.get('payDay'));
-    if (!name || name.length > 60 || amountCents === null || amountCents <= 0
-      || !Number.isInteger(payDay) || payDay < 1 || payDay > 28) {
-      showToast('Controlla descrizione, importo e giorno di accredito.', true);
+    const data = new FormData(event.target);
+    const name = String(data.get('name') ?? '').trim();
+    const amountCents = parseAmountCents(String(data.get('amount') ?? ''));
+    if (!name || name.length > 60 || amountCents === null || amountCents <= 0) {
+      showToast('Controlla descrizione e importo positivo.', true);
       return;
     }
-    planner.incomes.push({ id: makeId(), name, amountCents, payDay });
-    render();
+    const income = { id: makeId(), name, amountCents, dueDate: String(data.get('date')), cashMode: 'same', cashDate: null,
+      recurrenceMonths: Number(data.get('months')), endDate: String(data.get('endDate') || '') || null,
+      count: data.get('count') ? Number(data.get('count')) : null, overrides: {}, archived: false };
+    commit(() => { validateSeries(income); state.planner.incomes.push(income); }, 'Entrata prevista salvata (non ancora incassata).');
   }
   if (event.target.id === 'profile-form') {
     event.preventDefault();
