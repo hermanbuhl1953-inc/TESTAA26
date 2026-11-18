@@ -1,0 +1,75 @@
+VERIFICA PLANNING AFFIDABILE — 18 novembre 2026
+
+Base dichiarata: 02e65031d9b7fb86b154bb6dba78956d8a7e987c
+Input: TESTAA26-main (1).zip, preservato. Assenza di .git: commit non verificabile dal solo ZIP.
+
+ESEGUITI CON ESITO POSITIVO
+- npm run test:planning dopo correzione sicurezza: 55 test, 55 superati, 0 falliti, 0 saltati.
+  Copertura: motore puro e integrazione con DOM minimo/storage simulati;
+  ricorrenze 31/febbraio/bisestili/termini, identita e storico, eccezione singola,
+  effettivi e correzione/annullamento, riconciliazione saldo, migrazione v1/v2,
+  persistenza/ricaricamento, backup/ripristino, rollback quota storage,
+  proiezione/minimo/criticita/deficit, riepilogo mensile, escape, fusi UTC/Roma/New York.
+  Sette nuovi test: balanceDate valida/invalida in ogni stato, backup malevolo,
+  rifiuto migrazione/ripristino, nessuna sovrascrittura dei dati, dati locali
+  anomali preesistenti, escape attributo anche senza validazione preventiva.
+  Prima della correzione: 55 test misurati, 50 superati e 5 falliti attesi che
+  riproducevano il blocco segnalato. Dopo la correzione: nessun fallimento.
+- node --check: app.js, planning.js, service-worker.js, server.mjs,
+  scripts/build-pages.mjs e i due nuovi file test: tutti superati.
+- node scripts/build-pages.mjs: build locale riuscita; verificata identita del
+  planning.js copiato e assenza di backend/src/lib nel sito. Cartella generata rimossa.
+- Confronto binario con ZIP originale: nessuna cancellazione; lib/, backend/,
+  src/, assets/ e tutti gli altri file non elencati sono invariati.
+
+RIESEGUITI DOPO LA CORREZIONE MA BLOCCATI DALL'AMBIENTE, NON DICHIARATI SUPERATI
+- npm run test:all: caricamento dei file test originali fallito per ERR_MODULE_NOT_FOUND,
+  pacchetto zod assente. Nessuna conclusione sul superamento dei relativi casi.
+- node --test backend/source-monitor.test.mjs backend/staging.test.mjs:
+  caricamento bloccato da pdf-parse assente. Nessuna modifica ai file backend.
+  TMPDIR impostato sotto il progetto; residui rimossi.
+
+NON ESEGUITI
+- npm run typecheck: dipendenze locali e comando tsc non disponibili; nessuna installazione.
+- Browser reale, screenshot, QA visuale/mobile, installazione PWA e cache offline:
+  nessun browser disponibile. Il DOM simulato non li sostituisce.
+- Nessun server backend avviato, accesso rete, installazione, push, commit o pubblicazione.
+
+CORREZIONE DI SICUREZZA PRE-PUBBLICAZIONE
+- planning.js valida balanceDate sempre: null o data civile ISO quando non pronto;
+  se pronto, data obbligatoria non futura e scelta sugli effettivi dello stesso giorno.
+- app.js applica escapeHtml all'attributo value della data saldo anche come difesa
+  indipendente dalla validazione; il backup malevolo non viene ripristinato/persistito.
+- Revisione mirata delle analoghe interpolazioni modello e validatori: nessun altro
+  percorso sfruttabile dimostrato nel perimetro; non e un audit generale.
+- Cache: scadenzario-shell-v9-planning-fix. Sostituire il precedente ZIP, non pubblicarlo.
+
+AMBITO E RISCHI RESIDUI
+Saldo/riserva/entrate persistenti, backup v2 e migrazione v1; motore condiviso di
+occorrenze, ricorrenze ancorate, storico ed effettivi collegati; cassa distinta;
+minimo inframensile e prima criticita distinti, deficit non nascosto.
+Modifica solo singola, non questa-e-successive; nessun pagamento parziale o audit
+immutabile delle revisioni. Per il giorno del saldo: inclusione tutti/nessuno,
+non per singolo movimento. Dati v1 gia perduti non ricostruibili; annotare il
+vecchio saldo temporaneo. Previsioni arretrate e dati mancanti segnalati/esclusi:
+la stima puo sovrastimare le disponibilita. Dati locali e backup non cifrati.
+Nessun fondo/budget/carta/multi-conto o notifica garantita ad app chiusa.
+Procedura completa, limiti e checklist: docs/PLANNING_AFFIDABILE.md.
+PRIMA DI APPLICARE: esportare backup JSON dalla vecchia app e proteggere modifiche
+locali sul ramo gia esistente planning-affidabile. Non caricare backup personali su Git.
+
+FILE AGGIUNTI/MODIFICATI (nomi relativi alla radice, solo questi nel pacchetto)
+- README.md
+- VERIFICA_PLANNING.txt
+- app.js
+- docs/ARCHITETTURA_PWA.md
+- docs/PLANNING_AFFIDABILE.md
+- index.html
+- package.json
+- planning.js
+- scripts/build-pages.mjs
+- server.mjs
+- service-worker.js
+- styles.css
+- test/planning/app-integration.test.mjs
+- test/planning/planning.test.mjs

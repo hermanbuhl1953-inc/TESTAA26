@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test:planning": "node --test test/planning/*.test.mjs",
     "test:eligibility": "node --test test/eligibility/*.test.mjs",
     "test:normalization": "node --test test/normalization/*.test.mjs",
     "test:validation": "node --test test/validation/*.test.mjs",

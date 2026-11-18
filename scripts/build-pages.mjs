@@ -6,6 +6,7 @@ const projectDirectory = path.dirname(path.dirname(fileURLToPath(import.meta.url
 const outputDirectory = path.join(projectDirectory, 'site');
 const publicFiles = [
   'app.js',
+  'planning.js',
   'index.html',
   'manifest.webmanifest',
   'service-worker.js',
