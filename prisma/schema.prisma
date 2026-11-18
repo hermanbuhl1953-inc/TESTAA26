@@ -56,6 +56,49 @@ enum BenefitRuleOperator {
   CONTAINS
 }
 
+enum AuthorityType {
+  REGION
+  MUNICIPALITY
+  NATIONAL
+  OTHER
+}
+
+enum MeasureBenefitType {
+  BONUS
+  CONTRIBUTION
+  DISCOUNT
+  REIMBURSEMENT
+  SERVICE
+  TAX_RELIEF
+  OTHER
+}
+
+enum MeasureStatus {
+  OPEN
+  UPCOMING
+  CLOSED
+  UNKNOWN
+}
+
+enum MeasureDataQuality {
+  VERIFIED
+  PARTIAL
+  TO_VERIFY
+}
+
+enum MeasureRecordType {
+  DEMO
+  SAMPLE
+  REAL
+}
+
+enum CandidateReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_REVIEW
+}
+
 model Benefit {
   id          String        @id @default(cuid())
   code        String        @unique
@@ -64,8 +107,41 @@ model Benefit {
   opensAt     DateTime?
   closesAt    DateTime?
   rules       BenefitRule[]
+  authorityType AuthorityType?
+  authorityName String?
+  territory    Json?
+  category     String?
+  benefitType  MeasureBenefitType?
+  amount       Json?
+  requirements Json?
+  application  Json?
+  source       Json?
+  measureStatus MeasureStatus?
+  dataQuality  MeasureDataQuality?
+  recordType   MeasureRecordType?
+  unstructuredRequirements String[] @default([])
+  provenance   Json?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+}
+
+model CandidateMeasure {
+  id              String               @id @default(cuid())
+  sourceId        String
+  fingerprint     String
+  contentHash     String
+  normalizedMeasure Json
+  validationResult  Json
+  sourceInformation Json
+  ingestedAt      DateTime             @default(now())
+  warnings        String[]             @default([])
+  conflicts       Json
+  reviewStatus    CandidateReviewStatus @default(PENDING)
+  createdAt       DateTime             @default(now())
+
+  @@index([sourceId, ingestedAt])
+  @@index([fingerprint])
+  @@index([contentHash])
 }
 
 model BenefitRule {

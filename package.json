@@ -4,7 +4,13 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test:eligibility": "node --test test/eligibility/*.test.mjs"
+    "test:eligibility": "node --test test/eligibility/*.test.mjs",
+    "test:normalization": "node --test test/normalization/*.test.mjs",
+    "test:validation": "node --test test/validation/*.test.mjs",
+    "test:ingestion": "node --test test/ingestion/*.test.mjs",
+    "test:real-measures": "node --test test/real-measures/*.test.mjs",
+    "test:all": "node --test test/eligibility/*.test.mjs test/normalization/*.test.mjs test/validation/*.test.mjs test/ingestion/*.test.mjs test/real-measures/*.test.mjs",
+    "ingest:manual": "node --experimental-strip-types scripts/ingest-manual.mjs"
   },
   "dependencies": {
     "openai": "^7.56.0",

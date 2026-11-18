@@ -1,6 +1,6 @@
 # Rule Engine — dominio iniziale
 
-Il modulo `src/domain/eligibility` valuta un `HouseholdProfile` rispetto alle regole strutturate di un `Benefit`; non dipende dalla UI, da Next.js, dal database o da servizi esterni. Le Zod schema validano gli input e il motore restituisce spiegazioni per ogni regola.
+Il modulo `src/domain/eligibility` valuta un `HouseholdProfile` rispetto alle regole strutturate di un `Benefit`; non dipende dalla UI, da Next.js, dal database o da servizi esterni. Le Zod schema validano gli input e il motore restituisce spiegazioni per ogni regola. Il modello pipeline `Measure` è separato; non passare misure con requisiti non strutturati al motore senza una revisione esplicita.
 
 ## Esiti
 

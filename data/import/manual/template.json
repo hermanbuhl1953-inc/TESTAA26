@@ -1,0 +1,49 @@
+{
+  "sourceId": "milano-quota-nidi",
+  "records": [
+    {
+      "raw": {
+        "id": null,
+        "title": null,
+        "description": null,
+        "category": null,
+        "benefitType": null,
+        "amount": {
+          "type": "UNKNOWN",
+          "value": null,
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "requirements": {
+          "iseeMax": null,
+          "iseeMin": null,
+          "iseeType": null,
+          "minAge": null,
+          "maxAge": null,
+          "minChildren": null,
+          "childrenMaxAge": null,
+          "residenceRequired": null,
+          "minimumResidenceMonths": null,
+          "rentRequired": null,
+          "registeredLeaseRequired": null,
+          "employmentStatus": null,
+          "disabilityRequired": null,
+          "otherRequirements": []
+        },
+        "application": {
+          "startDate": null,
+          "endDate": null,
+          "deadlineDescription": null,
+          "url": null,
+          "procedure": null
+        },
+        "sourceUrl": null,
+        "sourceDocumentDate": null,
+        "retrievedAt": null,
+        "lastVerifiedAt": null,
+        "unstructuredRequirements": []
+      }
+    }
+  ]
+}

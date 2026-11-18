@@ -1,0 +1,68 @@
+{
+  "sourceId": "lombardia-buono-scuola-2026-27",
+  "records": [
+    {
+      "raw": {
+        "id": "RLW12025050894",
+        "title": "Dote Scuola - Componente Buono Scuola, Anno Scolastico 2026/2027",
+        "description": "Contributo regionale per le famiglie con studentesse e studenti che frequentano scuole primarie o secondarie con retta.",
+        "category": "Diritto allo studio",
+        "benefitType": "CONTRIBUTION",
+        "amount": {
+          "type": "UNKNOWN",
+          "value": null,
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "requirements": {
+          "iseeMax": 4000000,
+          "iseeMin": null,
+          "iseeType": "ISEE in corso di validità alla data di presentazione della domanda",
+          "minAge": null,
+          "maxAge": null,
+          "minChildren": null,
+          "childrenMaxAge": null,
+          "residenceRequired": true,
+          "minimumResidenceMonths": null,
+          "rentRequired": null,
+          "registeredLeaseRequired": null,
+          "employmentStatus": null,
+          "disabilityRequired": null,
+          "otherRequirements": []
+        },
+        "application": {
+          "startDate": "2026-11-03T12:00:00+01:00",
+          "endDate": "2026-12-10T12:00:00+01:00",
+          "deadlineDescription": "Domande entro il 10 dicembre 2026 alle ore 12:00.",
+          "url": "https://www.bandi.regione.lombardia.it/bpm/web/la-mia-area/domande/faiDomanda?strumentoCod=RLW12025050894",
+          "procedure": "Domanda tramite il collegamento «Fai domanda» nella scheda ufficiale Bandi e Servizi."
+        },
+        "sourceUrl": "https://www.bandi.regione.lombardia.it/servizi/servizio/bandi/dettaglio/istruzione-formazione-lavoro/dote-scuola/dote-scuola-componente-buono-scuola-anno-scolastico-2026-2027-RLW12025050894",
+        "sourceName": "Regione Lombardia",
+        "sourceDocumentDate": null,
+        "retrievedAt": "2026-11-16T14:06:00+01:00",
+        "lastVerifiedAt": "2026-11-16T14:06:00+01:00",
+        "status": "OPEN",
+        "dataQuality": "TO_VERIFY",
+        "recordType": "REAL",
+        "sourceDocuments": [
+          {
+            "title": "DDS 14111 del 22/10/2026 - Approvazione avviso",
+            "url": "https://www.bandi.regione.lombardia.it/servizi/servizio/bandi/download/8a5aa37da17aaa1f01a17d2ee5a30108?fileName=DDS%2014111%2022_10_2026%20Approvazione%20Avviso.pdf",
+            "publishedDate": "2026-10-22"
+          },
+          {
+            "title": "Allegato A - Avviso pubblico Buono Scuola",
+            "url": "https://www.bandi.regione.lombardia.it/servizi/servizio/bandi/download/8a5aa37da17aaa1f01a17d301f6d0109?fileName=DDS%2014111_26%20Allegato%20A%20Avviso%20pubblico.pdf",
+            "publishedDate": null
+          }
+        ],
+        "unstructuredRequirements": [
+          "Le studentesse e gli studenti devono essere residenti in Lombardia e iscritti e frequentanti corsi ordinari presso scuole primarie o secondarie di primo o secondo grado.",
+          "La scuola deve essere statale o paritaria e prevedere una retta; può avere sede in Lombardia o in una Regione confinante con rientro quotidiano alla residenza."
+        ]
+      }
+    }
+  ]
+}

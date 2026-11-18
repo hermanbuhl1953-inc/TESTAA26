@@ -1,0 +1,75 @@
+{
+  "sourceId": "milano-sceglimi-2026",
+  "records": [
+    {
+      "raw": {
+        "id": "COMUNE-MILANO-SCEGLIMI-2026",
+        "title": "scegliMI - Sostegno all'affitto per under 35",
+        "description": "Contributo comunale integrativo del canone di locazione sul mercato privato a Milano per giovani lavoratori.",
+        "category": "Casa e sostegno all'affitto",
+        "benefitType": "CONTRIBUTION",
+        "amount": {
+          "type": "MAXIMUM",
+          "value": null,
+          "min": null,
+          "max": 240000,
+          "currency": "EUR"
+        },
+        "requirements": {
+          "iseeMax": null,
+          "iseeMin": null,
+          "iseeType": null,
+          "minAge": null,
+          "maxAge": null,
+          "minChildren": null,
+          "childrenMaxAge": null,
+          "residenceRequired": null,
+          "minimumResidenceMonths": null,
+          "rentRequired": true,
+          "registeredLeaseRequired": null,
+          "employmentStatus": null,
+          "disabilityRequired": null,
+          "otherRequirements": []
+        },
+        "application": {
+          "startDate": null,
+          "endDate": null,
+          "deadlineDescription": null,
+          "url": "https://formshd4.comune.milano.it/rwe2/module_preview.jsp?MODULE_TAG=SCEGLIMI_26",
+          "procedure": "Domanda online tramite il modulo collegato alla pagina ufficiale; la pagina comunale non specifica una scadenza."
+        },
+        "sourceUrl": "https://www.comune.milano.it/servizi/casa/sceglimi-sostegno-all-affitto-per-under-35",
+        "sourceName": "Comune di Milano",
+        "sourceDocumentDate": null,
+        "retrievedAt": "2026-11-16T14:06:37.641+01:00",
+        "lastVerifiedAt": "2026-11-16T14:06:37.641+01:00",
+        "status": "OPEN",
+        "dataQuality": "TO_VERIFY",
+        "recordType": "REAL",
+        "sourceDocuments": [
+          {
+            "title": "Avviso pubblico scegliMI - pagina istituzionale con stato APERTO",
+            "url": "https://servizi.comune.milano.it/en/dettaglio-contenuto/-/asset_publisher/pqxq/content/sceglimi",
+            "publishedDate": "2026-07-31"
+          },
+          {
+            "title": "Avviso pubblico scegliMI",
+            "url": "https://servizi.comune.milano.it/documents/20121/377948422/Avviso+scegliMI_signed.pdf/11f5d714-6a73-6878-2841-500d9906f608?t=1787042162386",
+            "publishedDate": "2026-08-18"
+          },
+          {
+            "title": "FAQ scegliMI aggiornate al 19/08/2026",
+            "url": "https://servizi.comune.milano.it/documents/20121/377948422/FAQ+da+pubblicare_19082026.pdf/71295d3d-88b4-fcae-d363-ca3175fe3e15?t=1787223689050",
+            "publishedDate": "2026-08-20"
+          }
+        ],
+        "unstructuredRequirements": [
+          "La pagina usa sia «under 35» sia «fino a 35 anni»; l'inclusione del compimento dei 35 anni va verificata sul bando, quindi non è stata convertita in maxAge.",
+          "Il contratto di locazione deve riguardare un immobile nel Comune di Milano e avere almeno 24 mesi residui alla data della domanda.",
+          "Il canone mensile deve superare il 30% del reddito netto mensile del nucleo familiare.",
+          "La pagina rinvia all'avviso pubblico per gli ulteriori requisiti; tali condizioni non sono state strutturate in questa acquisizione."
+        ]
+      }
+    }
+  ]
+}

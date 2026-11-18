@@ -1,0 +1,69 @@
+{
+  "sourceId": "lombardia-nidi-gratis-plus-2026-27",
+  "records": [
+    {
+      "raw": {
+        "id": "RLD12026053903",
+        "title": "NIDI GRATIS PLUS - 2026/27 - ADESIONE FAMIGLIE",
+        "description": "Agevolazione regionale collegata alle rette dei nidi e micro-nidi ammessi al programma Nidi Gratis Plus 2026/27.",
+        "category": "Servizi per l'infanzia",
+        "benefitType": "CONTRIBUTION",
+        "amount": {
+          "type": "UNKNOWN",
+          "value": null,
+          "min": null,
+          "max": null,
+          "currency": null
+        },
+        "requirements": {
+          "iseeMax": 2500000,
+          "iseeMin": null,
+          "iseeType": "ISEE minorenni oppure ISEE per le prestazioni familiari e per l'inclusione, secondo la scelta del Comune; attestazione in corso di validità",
+          "minAge": null,
+          "maxAge": null,
+          "minChildren": null,
+          "childrenMaxAge": null,
+          "residenceRequired": null,
+          "minimumResidenceMonths": null,
+          "rentRequired": null,
+          "registeredLeaseRequired": null,
+          "employmentStatus": null,
+          "disabilityRequired": null,
+          "otherRequirements": []
+        },
+        "application": {
+          "startDate": "2026-10-27T12:00:00+01:00",
+          "endDate": "2026-11-19T12:00:00+01:00",
+          "deadlineDescription": "Domande entro il 19 novembre 2026 alle ore 12:00 e comunque fino a esaurimento delle risorse.",
+          "url": "https://www.bandi.regione.lombardia.it/bpm/web/la-mia-area/domande/faiDomanda?strumentoCod=RLD12026053903",
+          "procedure": "Domanda tramite il collegamento «Fai domanda» nella scheda ufficiale Bandi e Servizi."
+        },
+        "sourceUrl": "https://www.bandi.regione.lombardia.it/servizi/servizio/bandi/dettaglio/politiche-sociali/famiglia/nidi-gratis-plus-2026-27-adesione-famiglie-RLD12026053903",
+        "sourceName": "Regione Lombardia",
+        "sourceDocumentDate": null,
+        "retrievedAt": "2026-11-16T14:04:00+01:00",
+        "lastVerifiedAt": "2026-11-16T14:04:00+01:00",
+        "status": "OPEN",
+        "dataQuality": "TO_VERIFY",
+        "recordType": "REAL",
+        "sourceDocuments": [
+          {
+            "title": "DDUO 13777 del 19/10/2026 - Avviso famiglie",
+            "url": "https://www.bandi.regione.lombardia.it/servizi/servizio/bandi/download/8a5aa436a15b6cfe01a15de02e3f002f?fileName=DDUO%2013777%20del%20191026%20AVVISO%20FAMIGLIE.pdf",
+            "publishedDate": "2026-10-19"
+          },
+          {
+            "title": "Allegato A - Avviso famiglie Nidi Gratis 2026/27",
+            "url": "https://www.bandi.regione.lombardia.it/servizi/servizio/bandi/download/8a5aa436a15b6cfe01a15de091460030?fileName=ALLEGATO%20A%20AVVISO%20FAMIGLIE%20NIDI%20GRATIS%2026_27.pdf",
+            "publishedDate": null
+          }
+        ],
+        "unstructuredRequirements": [
+          "Il nucleo deve avere figli iscritti a nidi o micro-nidi pubblici o privati indicati dai Comuni e ammessi alla misura.",
+          "Almeno un genitore deve essere occupato oppure disoccupato con DID e PSP.",
+          "La retta mensile a carico dei genitori deve superare i limiti di rimborso INPS indicati: €272,73 per le prime 10 mensilità e €272,70 per l'undicesima, oppure €327,27 e €327,30 rispettivamente per minori nati dal 01/01/2024."
+        ]
+      }
+    }
+  ]
+}
