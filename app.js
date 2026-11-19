@@ -1,4 +1,5 @@
 import { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth } from './planning.js';
+import { buildRadar, filterAgenda, planningEnd } from './radar.js';
 
 const STORAGE_KEY = 'scadenzario.pwa.v1';
 const todayIso = () => dateToIso(dateOnly(new Date()));
@@ -91,6 +92,7 @@ let selectedHomeDate = dateToIso(dateOnly(new Date()));
 let selectedCalendarDate = dateToIso(dateOnly(new Date()));
 let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let filters = { category: 'all', status: 'active' };
+let agendaPeriod = 'today';
 let deferredInstallPrompt = null;
 let toastTimer = null;
 let serviceWorkerError = null;
@@ -323,39 +325,39 @@ function sortDeadlines(deadlines) {
     || a.title.localeCompare(b.title, 'it'));
 }
 
+function navIsCurrent(view) {
+  return currentView === view || view === 'more' && ['catalog', 'benefits', 'profile'].includes(currentView) || view === 'home' && currentView === 'radar';
+}
+
 function navButton(view, label, iconName) {
-  return `<button class="nav-button${currentView === view ? ' active' : ''}" type="button" data-action="navigate" data-view="${view}">${icon(iconName)}<span>${label}</span></button>`;
+  return `<button class="nav-button${navIsCurrent(view) ? ' active' : ''}" type="button" data-action="navigate" data-view="${view}"${navIsCurrent(view) ? ' aria-current="page"' : ''}>${icon(iconName)}<span>${label}</span></button>`;
 }
 
 function mobileNavButton(view, label, iconName) {
-  return `<button class="mobile-nav-button${currentView === view ? ' active' : ''}" type="button" data-action="navigate" data-view="${view}">${icon(iconName)}<span>${label}</span></button>`;
+  return `<button class="mobile-nav-button${navIsCurrent(view) ? ' active' : ''}" type="button" data-action="navigate" data-view="${view}"${navIsCurrent(view) ? ' aria-current="page"' : ''}>${icon(iconName)}<span>${label}</span></button>`;
 }
 
 function render() {
+  const focused = document.activeElement;
+  const focusData = focused && app.contains?.(focused) ? { id: focused.id, ...focused.dataset } : null;
   if (!state.profile) {
     app.innerHTML = renderOnboarding();
     return;
   }
 
-  const viewData = {
-    home: renderHome(),
-    calendar: renderCalendar(),
-    catalog: renderCatalog(),
-    profile: renderProfile(),
-    planning: renderPlanning(),
-    benefits: renderBenefits(),
-  };
+  const views = { home: renderHome, calendar: renderCalendar, catalog: renderCatalog, profile: renderProfile, planning: renderPlanning, benefits: renderBenefits, more: renderMore, radar: renderRadar };
+  let content;
+  try { content = (views[currentView] || renderHome)(); }
+  catch (error) { content = `<h1 class="page-title">Vista non calcolabile</h1><div class="notice error">${escapeHtml(error.message)}. Nessun dato è stato eliminato.</div><button class="button button-primary" type="button" data-action="navigate" data-view="profile">Apri impostazioni e backup</button>`; }
   app.innerHTML = `
     <div class="layout">
       <aside class="sidebar">
         <div class="brand"><span class="brand-mark">S</span><span>Scadenzario</span></div>
         <nav class="side-nav" aria-label="Navigazione principale">
-          ${navButton('home', 'Panoramica', 'home')}
-          ${navButton('calendar', 'Calendario', 'calendar')}
-          ${navButton('catalog', 'Suggerimenti', 'catalog')}
-          ${navButton('planning', 'Pianificazione', 'chart')}
-          ${navButton('benefits', 'Bonus e agevolazioni', 'benefits')}
-          ${navButton('profile', 'Impostazioni', 'profile')}
+          ${navButton('home', 'Home', 'home')}
+          ${navButton('calendar', 'Agenda', 'calendar')}
+          ${navButton('planning', 'Planning', 'chart')}
+          ${navButton('more', 'Altro', 'profile')}
         </nav>
         <div class="sidebar-bottom">
           <div class="sidebar-note">I tuoi dati restano su questo dispositivo. Nessun account o sincronizzazione.</div>
@@ -371,16 +373,20 @@ function render() {
             </button>
           </div>
         </header>
-        <main class="content">${viewData[currentView] || viewData.home}</main>
+        <main class="content" id="main-content" tabindex="-1">${content}</main>
       </div>
     </div>
     <nav class="mobile-bottom-nav" aria-label="Navigazione principale">
       ${mobileNavButton('home', 'Home', 'home')}
-      ${mobileNavButton('planning', 'Piano', 'chart')}
-      ${mobileNavButton('calendar', 'Calendario', 'calendar')}
-      ${mobileNavButton('benefits', 'Bonus', 'benefits')}
-      ${mobileNavButton('profile', 'Altro', 'profile')}
+      ${mobileNavButton('calendar', 'Agenda', 'calendar')}
+      ${mobileNavButton('planning', 'Planning', 'chart')}
+      ${mobileNavButton('more', 'Altro', 'profile')}
     </nav>`;
+  if (focusData) {
+    const replacement = [...app.querySelectorAll('button, input, select, textarea')].find(element =>
+      focusData.id && element.id === focusData.id || focusData.action && element.dataset.action === focusData.action && ['id', 'view', 'period', 'date', 'offset'].every(key => element.dataset[key] === focusData[key]) || focusData.filter && element.dataset.filter === focusData.filter);
+    (replacement ?? document.querySelector('#main-content'))?.focus({ preventScroll: true });
+  }
 }
 
 function renderOnboarding() {
@@ -415,68 +421,82 @@ function renderOnboarding() {
     </main>`;
 }
 
-function renderHome() {
-  const cards = nextSeriesCards();
-  const active = cards.filter((deadline) => !deadline.archived && !deadline.completed);
-  const overdue = active.filter((deadline) => dayDifference(deadline.dueDate) < 0);
-  const upcoming = sortDeadlines(active);
-  const remainingForDay = selectedHomeDate === dateToIso(dateOnly(new Date()))
-    ? upcoming
-    : upcoming.filter((deadline) => deadline.dueDate === selectedHomeDate);
-  const dateStrip = renderDateStrip();
-  const categoryFilter = renderCategoryFilter();
-  const statusFilter = renderStatusFilter();
-  const filtered = sortDeadlines(cards.filter((deadline) => {
-    if (filters.status === 'archived') return deadline.archived;
-    if (deadline.archived) return false;
-    if (filters.status === 'active' && deadline.completed) return false;
-    if (filters.status === 'completed' && !deadline.completed) return false;
-    return true;
-  }).filter((deadline) => filters.category === 'all' || deadline.category === filters.category));
-  const shown = filters.status === 'active'
-    && filters.category === 'all'
-    && selectedHomeDate !== dateToIso(dateOnly(new Date()))
-    ? remainingForDay
-    : filtered;
-  const heading = selectedHomeDate === dateToIso(dateOnly(new Date()))
-    ? 'Prossime scadenze'
-    : `Scadenze del ${formatDate(selectedHomeDate, { day: 'numeric', month: 'long' })}`;
-  const alertText = overdue.length === 0
-    ? 'Nessuna scadenza è in ritardo'
-    : `${overdue.length} ${overdue.length === 1 ? 'scadenza è in ritardo' : 'scadenze sono in ritardo'}`;
+function currentRadar() { return buildRadar(state.planner, state.deadlines, todayIso()); }
 
-  return `
-    <p class="greeting">${escapeHtml(new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()))}</p>
-    <h1 class="page-title">Ciao ${escapeHtml(state.profile.name)},<br>tutto sotto controllo.</h1>
-    ${renderCatalogWarning()}
-    <section class="summary-row">
-      <div class="summary-card">
-        <p class="summary-label">Le tue prossime scadenze</p>
-        <p class="summary-count">${active.length} da gestire</p>
-        <div class="summary-foot"><span class="dot"></span>${escapeHtml(alertText)}</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-card-label">${icon('bell')} Entro i prossimi 7 giorni</span>
-        <strong>${active.filter((deadline) => {
-          const days = dayDifference(deadline.dueDate);
-          return days >= 0 && days <= 7;
-        }).length} <small style="font-size:12px;font-weight:600">scadenze</small></strong>
-      </div>
-    </section>
-    <div class="section-heading">
-      <div><h2>${escapeHtml(new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' }).format(new Date()))}</h2><p>Seleziona un giorno per filtrare l’elenco</p></div>
-      <button class="text-button" type="button" data-action="navigate" data-view="calendar">Apri calendario →</button>
-    </div>
-    ${dateStrip}
-    <div class="section-heading">
-      <div><h2>${escapeHtml(heading)}</h2><p>${shown.length} ${shown.length === 1 ? 'elemento' : 'elementi'}</p></div>
-      <div class="toolbar">
-        ${categoryFilter}${statusFilter}
-        <button class="button button-primary" type="button" data-action="new-deadline">${icon('plus')}<span>Nuova</span></button>
-      </div>
-    </div>
-    ${renderDeadlineList(shown)}
-    ${renderInstallBanner()}`;
+function renderMore() {
+  return `<p class="eyebrow">STRUMENTI LOCALI</p><h1 class="page-title">Altro</h1><div class="more-menu">
+    ${[['benefits', 'Opportunità', 'Bonus e agevolazioni: consulta il catalogo esistente, senza entrate automatiche.'], ['catalog', 'Suggerimenti', 'Modelli di scadenza da verificare e personalizzare.'], ['profile', 'Impostazioni / Profilo e Backup', 'Profilo locale, esportazione e ripristino JSON, installazione e promemoria.']].map(([view, label, detail]) => `<section class="settings-card"><h2>${label}</h2><p>${detail}</p><button class="button button-quiet" type="button" data-action="navigate" data-view="${view}">Apri ${label}</button></section>`).join('')}</div>`;
+}
+
+function renderCalculation(radar) {
+  const p = state.planner;
+  return `<details class="calculation-details"><summary>Come viene calcolato?</summary>
+    <p>Saldo di riferimento: ${p.ready ? escapeHtml(formatAmount(p.openingBalanceCents)) : 'non impostato'}; data: ${p.balanceDate ? escapeHtml(p.balanceDate) : 'non impostata'}. Orizzonte fino al ${escapeHtml(radar.end)} incluso, uguale in Home e Planning.</p>
+    <ul><li>Effettivi prima del saldo già assorbiti; dopo il saldo applicati, anche se precedenti a oggi. Stessa data: ${p.sameDayActualsIncluded === true ? 'tutti inclusi nel saldo' : p.sameDayActualsIncluded === false ? 'nessuno incluso: applicati al saldo' : 'scelta tutti/nessuno ancora da completare'}. Nessuna selezione parziale.</li>
+    <li>La previsione usa la cassa, non la scadenza legale. Effettivi sostituiscono le previsioni; entrate previste non sono ancora incassate. Archiviate escluse dalle previsioni, effettivi conservati.</li>
+    <li>Casse sconosciute e previsioni arretrate escluse, mai spostate a oggi. Importi mancanti non sono stimati. Completamenti storici non riconciliati segnalati.</li>
+    <li>Nello stesso giorno, senza orari: uscite prima delle entrate. Minimo prudenziale, non estratto conto. Nessuna stima delle spese non inserite e nessun incasso o pagamento automatico.</li></ul></details>`;
+}
+
+function renderReliability(radar) {
+  const p = state.planner;
+  const warnings = radar.projection?.warnings ?? [];
+  const incomplete = !radar.projection || warnings.length > 0 || Boolean(state.migrationNotice);
+  const excluded = radar.items.some(i => i.type === 'expense-overdue' && i.cashDate && i.cashDate < todayIso());
+  return `<section class="plan-panel" aria-labelledby="reliability-title"><h2 id="reliability-title">Attendibilità del piano</h2>
+    <p class="plan-state">${!p.ready ? 'Imposta il punto di partenza del tuo piano.' : incomplete ? 'La previsione non racconta ancora tutto.' : 'Previsione basata sui movimenti inseriti. Le spese non registrate non sono considerate.'}</p>
+    ${p.ready ? `<p>Saldo di riferimento <strong class="money">${formatAmount(p.openingBalanceCents)}</strong> al ${escapeHtml(p.balanceDate)} · Riserva <strong class="money">${formatAmount(p.reserveCents)}</strong>.</p>` : ''}
+    <p>Effettivi nella data saldo: ${p.sameDayActualsIncluded === true ? 'tutti già inclusi' : p.sameDayActualsIncluded === false ? 'nessuno incluso; applicati' : 'scelta mancante'}. Periodo: ${p.ready ? escapeHtml(p.balanceDate) : 'saldo da impostare'} → ${escapeHtml(radar.end)}.</p>
+    ${excluded ? '<p class="inline-warning">Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale.</p>' : ''}
+    ${radar.error ? `<p class="inline-warning">Previsione non calcolabile: ${escapeHtml(radar.error)}</p>` : ''}
+    ${state.migrationNotice ? `<p class="inline-warning">${escapeHtml(state.migrationNotice)}</p>` : ''}
+    ${warnings.length ? `<details class="inline-warning"><summary>${warnings.length} problemi nei dati: verifica inclusioni ed esclusioni</summary><ul>${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul></details>` : !radar.projection ? '<p>Completa saldo, data e scelta sugli effettivi. Anche senza saldo, Radar mantiene visibili gli arretrati e i dati mancanti.</p>' : ''}
+    <button class="button button-quiet" type="button" data-action="configure-plan">${p.ready ? 'Verifica saldo e dati' : 'Imposta saldo'}</button>
+    ${renderCalculation(radar)}</section>`;
+}
+
+function renderTrend(radar) {
+  const p = radar.projection;
+  return `<section class="plan-panel" aria-labelledby="trend-title"><h2 id="trend-title">Andamento previsto</h2><p>Stesso motore del Planning · fino al ${escapeHtml(radar.end)} incluso.</p>
+    ${!p ? '<p>Previsione non calcolabile: completa o correggi i dati del piano. Nessun valore stimato viene sostituito con zero.</p>' : `
+    ${p.warnings.length || state.migrationNotice ? '<p class="inline-warning">La previsione non racconta ancora tutto. Dati esclusi o da verificare: i risultati possono sovrastimare il margine.</p>' : '<p>Previsione basata sui movimenti inseriti. Le spese non registrate non sono considerate.</p>'}
+    ${radar.items.some(i => i.type === 'expense-overdue' && i.cashDate && i.cashDate < todayIso()) ? '<p class="inline-warning">Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale.</p>' : ''}
+    <dl class="trend-metrics"><div><dt>Prima sotto riserva</dt><dd>${p.firstCriticalDate ? escapeHtml(p.firstCriticalDate) : 'Non rilevata nei movimenti noti'}${state.planner.reserveCents === 0 ? ' (riserva 0,00 €)' : ''}</dd></div>
+    <div><dt>Prima sotto zero</dt><dd>${p.firstBelowZero ? escapeHtml(p.firstBelowZero) : 'Non rilevata nei movimenti noti'}</dd></div>
+    <div><dt>Minimo dal saldo di riferimento</dt><dd class="money">${formatAmount(p.minimumCents)}<small>Il ${escapeHtml(p.minimumDate)}</small></dd></div>
+    <div><dt>Margine rispetto alla riserva</dt><dd class="money">${formatAmount(p.marginCents)}</dd></div></dl>`}
+    <button class="button button-quiet" type="button" data-action="planning-results">Apri Planning</button></section>`;
+}
+
+function renderRadarItems(items) {
+  if (!items.length) return '<p class="empty-context">Nessuna azione rilevata dalle regole sui dati inseriti. Non è una verifica di spese o entrate non registrate.</p>';
+  return `<ol class="radar-list">${items.map(item => `<li class="radar-card"><article><p class="eyebrow">${item.severity === 0 ? 'PRIORITÀ PIANO' : item.severity === 1 ? 'DA VERIFICARE' : 'DATI DA COMPLETARE'}</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p>
+    ${item.occurrenceId && item.dueDate ? `<p class="radar-dates">Scadenza: ${escapeHtml(item.dueDate)} · Cassa prevista: ${item.cashDate ? escapeHtml(item.cashDate) : 'non nota'}</p>` : ''}
+    ${item.type === 'critical' ? `<p>Prima sotto riserva: ${escapeHtml(item.firstCriticalDate ?? 'non rilevata')}; prima sotto zero: ${escapeHtml(item.firstBelowZero ?? 'non rilevata')}.</p><details><summary>Perché questa segnalazione?</summary><p>Saldo iniziale ${formatAmount(state.planner.openingBalanceCents)} al ${escapeHtml(state.planner.balanceDate)}; riserva ${formatAmount(state.planner.reserveCents)}. Movimenti applicati fino alla prima criticità/sottozero (incluse tutte le operazioni della giornata, uscite prima delle entrate):</p><ul>${item.movements.map(r => `<li>${escapeHtml(r.date)} · ${escapeHtml(r.label)} · ${formatAmount(r.amountCents)} → saldo ${formatAmount(r.balanceCents)}</li>`).join('') || '<li>Criticità già presente nel saldo iniziale.</li>'}</ul></details>` : ''}
+    <div class="radar-actions"><button class="button button-primary" type="button" data-action="${item.action}"${item.occurrenceId ? ` data-id="${escapeHtml(item.occurrenceId)}"` : ''}${item.view ? ` data-view="${item.view}"` : ''}>${item.actionLabel}</button>
+    ${item.editAction ? `<button class="text-button" type="button" data-action="${item.editAction}" data-id="${escapeHtml(item.occurrenceId)}">Aggiorna previsione / modifica singola</button>` : ''}</div></article></li>`).join('')}</ol>`;
+}
+
+function renderRadar() {
+  const radar = currentRadar();
+  return `<p class="eyebrow">REGOLE SPIEGABILI · SOLO DATI LOCALI</p><h1 class="page-title">Radar</h1><p class="page-description">${radar.items.length} segnalazioni, ordinate per gravità e data. Occorrenze considerate dall’ancora delle serie fino al ${escapeHtml(radar.end)}, incluse eccezioni e casse anticipate riconosciute dal motore. Nessun troncamento dell’elenco; limite motore 100.000 passi per serie, con errore visibile.</p>${renderRadarItems(radar.items)}${renderCalculation(radar)}`;
+}
+
+function renderHome() {
+  const radar = currentRadar();
+  let upcoming = [], listError = null;
+  try { upcoming = sortDeadlines(state.deadlines.flatMap(series => {
+    if (series.archived) return [];
+    const end = series.dueDate > radar.end ? series.dueDate : radar.end;
+    return sortDeadlines(occurrences([series], end).filter(o => !o.completed && o.dueDate >= todayIso())).slice(0, 1);
+  })); }
+  catch (error) { listError = error.message; }
+  return `<p class="eyebrow">SCADENZARIO · ${escapeHtml(todayIso())}</p><h1 class="page-title">Il tuo piano, in chiaro.</h1>
+    <section class="plan-panel home-priorities" aria-labelledby="priorities-title"><div class="section-heading"><div><h2 id="priorities-title">Da gestire</h2><p>${radar.items.length} segnalazioni · al massimo 3 qui, elenco completo nel Radar</p></div><button class="button button-quiet" type="button" data-action="navigate" data-view="radar">Apri Radar</button></div>${renderRadarItems(radar.items.slice(0, 3))}</section>
+    ${renderReliability(radar)}${renderTrend(radar)}
+    <section class="plan-panel"><div class="section-heading"><div><h2>Prossime scadenze</h2><p>Prima occorrenza aperta per serie, da oggi; tutte le occorrenze e lo storico in Agenda.</p></div><button class="button button-primary" type="button" data-action="new-deadline">Nuova scadenza</button></div>
+    ${listError ? `<p class="inline-warning">Elenco non calcolabile: ${escapeHtml(listError)}</p>` : upcoming.length ? renderDeadlineList(upcoming) : '<p class="empty-context">Nessuna prossima scadenza nei dati inseriti. Controlla gli arretrati nel Radar o aggiungi una scadenza.</p>'}
+    <button class="text-button" type="button" data-action="navigate" data-view="calendar">Apri Agenda e calendario</button></section>${renderInstallBanner()}`;
 }
 
 function renderDateStrip() {
@@ -544,7 +564,7 @@ function renderDeadlineCard(deadline) {
     </div>`;
   return `<article class="${classes.join(' ')}">
     <span class="date-icon">${icon('calendar')}<small>${escapeHtml(new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(date))}</small></span>
-    <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''} · Cassa: ${deadline.cashDate ? escapeHtml(formatDate(deadline.cashDate)) : 'non nota'}${deadline.actual ? ` · Pagato ${escapeHtml(formatAmount(deadline.actual.amountCents))} il ${escapeHtml(formatDate(deadline.actual.date))}` : deadline.legacyCompleted ? ' · Storico: data/importo effettivi sconosciuti' : ''}</p></div>
+    <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''} · Scadenza: ${escapeHtml(deadline.dueDate)} · Cassa prevista: ${deadline.cashDate ? escapeHtml(formatDate(deadline.cashDate)) : 'non nota'}${deadline.actual ? ` · Pagato ${escapeHtml(formatAmount(deadline.actual.amountCents))} il ${escapeHtml(formatDate(deadline.actual.date))}` : deadline.legacyCompleted ? ' · Storico: data/importo effettivi sconosciuti' : ''}</p></div>
     <div class="deadline-right">${amount ? `<span class="deadline-amount">${escapeHtml(amount)}</span>` : ''}<span class="status-pill ${status.className}">${escapeHtml(status.text)}</span>${actionButtons}</div>
   </article>`;
 }
@@ -566,7 +586,9 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1);
   const gridStart = new Date(year, month, 1 - ((firstDay.getDay() + 6) % 7));
   const gridEnd = dateToIso(addDays(gridStart, 41));
-  const activeDeadlines = viewOccurrences(gridEnd, dateToIso(gridStart)).filter((deadline) => !deadline.archived);
+  const end = gridEnd > planningEnd(todayIso()) ? gridEnd : planningEnd(todayIso());
+  const all = viewOccurrences(end);
+  const activeDeadlines = filterAgenda(all, { ...filters, period: 'all' }, todayIso());
   const cells = Array.from({ length: 42 }, (_, index) => {
     const date = new Date(gridStart);
     date.setDate(gridStart.getDate() + index);
@@ -576,15 +598,21 @@ function renderCalendar() {
     if (date.getMonth() !== month) classes.push('outside');
     if (iso === dateToIso(dateOnly(new Date()))) classes.push('today');
     if (iso === selectedCalendarDate) classes.push('selected');
-    return `<button class="${classes.join(' ')}" type="button" data-action="select-calendar-date" data-date="${iso}" aria-label="${escapeHtml(formatDate(date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}${events.length ? `, ${events.length} scadenze` : ''}">
+    return `<button class="${classes.join(' ')}" type="button" data-action="select-calendar-date" data-date="${iso}" aria-pressed="${iso === selectedCalendarDate}" aria-label="${escapeHtml(formatDate(date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}${events.length ? `, ${events.length} scadenze` : ''}">
       <span class="calendar-day-number">${date.getDate()}</span>
       <span class="calendar-events">${events.slice(0, 2).map((event) => `<span class="calendar-event${dayDifference(event.dueDate) < 0 && !event.completed ? ' overdue' : ''}">${escapeHtml(event.title)}</span>`).join('')}${events.length > 2 ? `<span class="calendar-event more">+${events.length - 2} altre</span>` : ''}</span>
     </button>`;
   }).join('');
-  const selectedDeadlines = sortDeadlines(activeDeadlines.filter((deadline) => deadline.dueDate === selectedCalendarDate));
+  const selectedDeadlines = filterAgenda(all, { ...filters, period: agendaPeriod, date: selectedCalendarDate }, todayIso());
+  const selection = { today: 'Oggi', upcoming: 'Prossime (dopo oggi)', overdue: 'Arretrati', all: 'Tutte le date / storico', day: `Giorno selezionato: ${selectedCalendarDate}` }[agendaPeriod];
   return `
-    <p class="eyebrow">PIANIFICA</p><h1 class="page-title">Calendario</h1>
-    <p class="page-description">Una vista mensile di tutte le scadenze attive. Seleziona un giorno per vedere i dettagli.</p>
+    <p class="eyebrow">PIANIFICA</p><h1 class="page-title">Agenda</h1>
+    <p class="page-description">Scadenze legali e storico. Il Calendario è una vista alternativa: selezionare un giorno attiva esplicitamente il filtro Giorno selezionato.</p>
+    <div class="agenda-filters" aria-label="Filtri Agenda"><div class="period-filters" aria-label="Periodo esclusivo">
+      ${[['today', 'Oggi'], ['upcoming', 'Prossime'], ['overdue', 'Arretrati'], ['all', 'Tutte / storico']].map(([period, label]) => `<button class="button ${agendaPeriod === period ? 'button-primary' : 'button-quiet'}" type="button" data-action="agenda-period" data-period="${period}" aria-pressed="${agendaPeriod === period}">${label}</button>`).join('')}</div>
+      <div class="toolbar">${renderCategoryFilter()}${renderStatusFilter()}</div></div>
+    <p class="page-description">Elenco fino al ${escapeHtml(end)}, senza troncamento. Per date successive usa il mese del calendario. Completate e archiviate: scegli stato e Tutte / storico.</p>
+    <details class="agenda-calendar"${agendaPeriod === 'day' ? ' open' : ''}><summary>Calendario mensile · ${escapeHtml(monthName)}</summary>
     <div class="calendar-header">
       <h2 class="calendar-title">${escapeHtml(monthName)}</h2>
       <div class="calendar-controls">
@@ -592,13 +620,13 @@ function renderCalendar() {
         <button class="icon-button" type="button" data-action="calendar-month" data-offset="1" aria-label="Mese successivo">${icon('right')}</button>
       </div>
     </div>
-    <div class="calendar-grid" role="grid" aria-label="${escapeHtml(monthName)}">
-      ${['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day) => `<span class="calendar-weekday" role="columnheader">${day}</span>`).join('')}
+    <div class="calendar-grid" aria-label="${escapeHtml(monthName)}">
+      ${['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day) => `<span class="calendar-weekday">${day}</span>`).join('')}
       ${cells}
     </div>
     <div class="calendar-legend"><span class="legend-item"><i class="legend-dot"></i>Scadenza</span><span class="legend-item"><i class="legend-dot late"></i>Scaduta</span></div>
-    <div class="section-heading"><div><h2>${escapeHtml(formatDate(selectedCalendarDate, { weekday: 'long', day: 'numeric', month: 'long' }))}</h2><p>${selectedDeadlines.length} ${selectedDeadlines.length === 1 ? 'scadenza' : 'scadenze'}</p></div><button class="button button-primary" type="button" data-action="new-deadline" data-date="${selectedCalendarDate}">${icon('plus')}Aggiungi</button></div>
-    ${renderDeadlineList(selectedDeadlines)}`;
+    </details><div class="section-heading"><div><h2>${escapeHtml(selection)}</h2><p>${selectedDeadlines.length} ${selectedDeadlines.length === 1 ? 'scadenza' : 'scadenze'}</p></div><button class="button button-primary" type="button" data-action="new-deadline" data-date="${selectedCalendarDate}">${icon('plus')}Aggiungi</button></div>
+    ${selectedDeadlines.length ? renderDeadlineList(selectedDeadlines) : `<p class="empty-context">Nessuna scadenza: ${escapeHtml(selection)} con categoria e stato selezionati. Cambia periodo o filtri per consultare lo storico.</p>`}`;
 }
 
 function renderCatalog() {
@@ -656,13 +684,17 @@ function renderProfile() {
 
 function renderPlanning() {
   const planner = state.planner;
-  const end = shiftMonth(todayIso().slice(0, 8) + '01', 12);
-  const projection = planner.ready ? project(planner, state.deadlines, todayIso(), end) : null;
-  const incomeItems = planner.incomes.flatMap(s => occurrences([s], s.dueDate > end ? s.dueDate : end));
+  const radar = currentRadar();
+  const end = radar.end;
+  const projection = radar.projection;
+  let incomeItems = [], incomeError = null;
+  try { incomeItems = planner.incomes.flatMap(s => occurrences([s], s.dueDate > end ? s.dueDate : end)); }
+  catch (error) { incomeError = error.message; }
   return `
     <p class="eyebrow">FLUSSI DI CASSA</p><h1 class="page-title">Pianificazione</h1>
     <p class="page-description">Saldo, riserva ed entrate sono salvati su questo browser e inclusi nel backup JSON. Nessuna sincronizzazione o cifratura.</p>
     ${state.migrationNotice ? `<div class="notice">${escapeHtml(state.migrationNotice)}</div>` : ''}
+    ${renderReliability(radar)}
     <form id="planner-form" class="settings-card planner-form">
       <h3>Saldo di riferimento</h3>
       <div class="field-row">
@@ -686,14 +718,15 @@ function renderPlanning() {
           <label class="field"><span>Numero occorrenze (facoltativo)</span><input name="count" type="number" min="1" max="1200"></label>
         </div><button class="button button-quiet" type="submit">Aggiungi previsione</button>
       </form>
-      <ul class="income-list">${incomeItems.map(o => `<li><span><strong>${escapeHtml(o.name)}</strong><small>${escapeHtml(formatDate(o.dueDate))} · ${formatAmount(o.amountCents)} · ${o.actual ? `Incassato ${formatAmount(o.actual.amountCents)} il ${escapeHtml(formatDate(o.actual.date))}` : 'Previsto, non incassato'}</small></span><div class="toolbar"><button class="text-button" type="button" data-action="actual-income" data-id="${escapeHtml(o.id)}">${o.actual ? 'Correggi incasso' : 'Registra incasso'}</button>${o.actual ? `<button class="text-button" type="button" data-action="undo-income" data-id="${escapeHtml(o.id)}">Annulla incasso</button>` : `<button class="text-button" type="button" data-action="edit-income" data-id="${escapeHtml(o.id)}">Modifica singola</button>`}<button class="text-button" type="button" data-action="${o.archived ? 'restore-income' : 'remove-income'}" data-id="${escapeHtml(o.seriesId)}">${o.archived ? 'Riattiva serie archiviata' : 'Archivia serie'}</button></div></li>`).join('')}</ul>
+      ${incomeError ? `<p class="inline-warning">Entrate non calcolabili: ${escapeHtml(incomeError)}</p>` : ''}
+      <ul class="income-list">${incomeItems.map(o => `<li><span><strong>${escapeHtml(o.name)}</strong><small>Scadenza: ${escapeHtml(o.dueDate)} · Cassa prevista: ${o.cashDate ? escapeHtml(o.cashDate) : 'non nota'} · ${formatAmount(o.amountCents)}${o.archived ? ' · Serie archiviata' : ''} · ${o.actual ? `Incassato ${formatAmount(o.actual.amountCents)} il ${escapeHtml(formatDate(o.actual.date))}` : 'Previsto, non incassato'}</small></span><div class="toolbar"><button class="text-button" type="button" data-action="actual-income" data-id="${escapeHtml(o.id)}">${o.actual ? 'Correggi incasso' : 'Registra incasso'}</button>${o.actual ? `<button class="text-button" type="button" data-action="undo-income" data-id="${escapeHtml(o.id)}">Annulla incasso</button>` : `<button class="text-button" type="button" data-action="edit-income" data-id="${escapeHtml(o.id)}">Modifica singola</button>`}<button class="text-button" type="button" data-action="${o.archived ? 'restore-income' : 'remove-income'}" data-id="${escapeHtml(o.seriesId)}">${o.archived ? 'Riattiva serie archiviata' : 'Archivia serie'}</button></div></li>`).join('')}</ul>
     </section>
+    <div id="planning-results" tabindex="-1">${renderTrend(radar)}</div>
     ${projection ? `<section class="planning-results">
-      <div class="planning-highlight"><span>Minimo inframensile stimato (dal saldo di riferimento)</span><strong>${formatAmount(projection.minimumCents)}</strong><small>Il ${escapeHtml(formatDate(projection.minimumDate))} · Margine rispetto alla riserva: ${formatAmount(projection.marginCents)} · Deficit sotto zero: ${formatAmount(projection.deficitCents)}</small></div>
-      <div class="notice${projection.firstCriticalDate ? ' error' : ''}">${projection.firstCriticalDate ? `Prima criticità sotto riserva: ${escapeHtml(formatDate(projection.firstCriticalDate))}.` : 'Nessuna criticità sotto riserva nei movimenti noti.'} Il giorno del minimo è distinto dalla prima criticità. Saldo finale: ${formatAmount(projection.endingBalanceCents)}.</div>
+      <p>Saldo finale previsto: <strong class="money">${formatAmount(projection.endingBalanceCents)}</strong> · Deficit massimo sotto zero: <strong class="money">${formatAmount(projection.deficitCents)}</strong>.</p>
       <div class="notice">Stima parziale fino al ${escapeHtml(formatDate(end, { day: 'numeric', month: 'long', year: 'numeric' }))}. Nessun arretrato viene spostato automaticamente a oggi. Senza orari, uscite prima delle entrate dello stesso giorno (prudenziale). I dati mancanti possono peggiorare il risultato; non include spese quotidiane o non registrate. Non è consulenza finanziaria.</div>
       ${projection.warnings.length ? `<details class="notice error"><summary>${projection.warnings.length} dati mancanti o movimenti da riconciliare (stima incompleta)</summary><ul>${projection.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul></details>` : ''}
-      <div class="projection-table-wrap"><table class="projection-table"><caption>Riepilogo mensile; ultimo mese limitato alla data finale indicata</caption><thead><tr><th scope="col">Mese</th><th scope="col">Entrate</th><th scope="col">Uscite</th><th scope="col">Saldo finale</th><th scope="col">Minimo inframensile</th></tr></thead><tbody>${projection.months.map(m => `<tr><th scope="row">${escapeHtml(formatDate(m.month, { month: 'long', year: 'numeric' }))}</th><td>${formatAmount(m.incomeCents)}</td><td>${formatAmount(m.expensesCents)}</td><td>${formatAmount(m.endingBalanceCents)}</td><td class="${m.minimumCents < planner.reserveCents ? 'negative' : ''}">${formatAmount(m.minimumCents)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="projection-table-wrap"><table class="projection-table"><caption>Riepilogo mensile dal mese corrente alla data finale indicata; gli effettivi precedenti al mese sono già applicati al saldo iniziale</caption><thead><tr><th scope="col">Mese</th><th scope="col">Entrate</th><th scope="col">Uscite</th><th scope="col">Saldo finale</th><th scope="col">Minimo inframensile</th></tr></thead><tbody>${projection.months.map(m => `<tr><th scope="row">${escapeHtml(formatDate(m.month, { month: 'long', year: 'numeric' }))}</th><td>${formatAmount(m.incomeCents)}</td><td>${formatAmount(m.expensesCents)}</td><td>${formatAmount(m.endingBalanceCents)}</td><td class="${m.minimumCents < planner.reserveCents ? 'negative' : ''}">${formatAmount(m.minimumCents)}</td></tr>`).join('')}</tbody></table></div>
       <div class="projection-table-wrap"><table class="projection-table"><caption>Movimenti applicati: gli effettivi sostituiscono la previsione collegata</caption><thead><tr><th scope="col">Data</th><th scope="col">Movimento</th><th scope="col">Tipo</th><th scope="col">Importo</th><th scope="col">Saldo</th></tr></thead><tbody>${projection.rows.map(r => `<tr><th scope="row">${escapeHtml(formatDate(r.date))}</th><td>${escapeHtml(r.label)}</td><td>${r.actual ? 'Effettivo' : 'Previsione'}</td><td>${formatAmount(r.amountCents)}</td><td class="${r.balanceCents < planner.reserveCents ? 'negative' : ''}">${formatAmount(r.balanceCents)}</td></tr>`).join('')}</tbody></table></div>
     </section>` : ''}`;
 }
@@ -1233,6 +1266,19 @@ function handleClick(event) {
     case 'navigate':
       currentView = button.dataset.view;
       render();
+      document.querySelector('#main-content')?.focus();
+      break;
+    case 'configure-plan':
+    case 'planning-results':
+      currentView = 'planning';
+      render();
+      document.querySelector(action === 'configure-plan' ? '#planner-form input[name="openingBalance"]' : '#planning-results')?.focus();
+      break;
+    case 'agenda-period':
+      agendaPeriod = button.dataset.period;
+      render();
+      document.querySelector(`[data-action="agenda-period"][data-period="${agendaPeriod}"]`)?.focus();
+      showToast('Filtro Agenda aggiornato.');
       break;
     case 'new-deadline':
       openDeadlineForm(null, button.dataset.date ? { dueDate: button.dataset.date } : {});
@@ -1263,12 +1309,17 @@ function handleClick(event) {
       break;
     case 'select-calendar-date':
       selectedCalendarDate = button.dataset.date;
+      agendaPeriod = 'day';
       render();
+      document.querySelector(`[data-action="select-calendar-date"][data-date="${selectedCalendarDate}"]`)?.focus();
+      showToast(`Giorno selezionato: ${selectedCalendarDate}.`);
       break;
     case 'calendar-month':
       calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + Number(button.dataset.offset), 1);
       selectedCalendarDate = dateToIso(calendarMonth);
+      agendaPeriod = 'day';
       render();
+      document.querySelector(`[data-action="calendar-month"][data-offset="${Number(button.dataset.offset)}"]`)?.focus();
       break;
     case 'use-catalog-item':
       openCatalogItem(id);
@@ -1331,6 +1382,8 @@ function handleChange(event) {
   if (event.target.matches('[data-filter]')) {
     filters[event.target.dataset.filter] = event.target.value;
     render();
+    document.querySelector(`[data-filter="${event.target.dataset.filter}"]`)?.focus();
+    showToast('Filtri Agenda aggiornati.');
   }
   if (event.target.id === 'notification-switch') {
     if (event.target.checked) enableNotifications();
@@ -1600,6 +1653,11 @@ document.addEventListener('click', (event) => {
   if (!closeButton) return;
   closeButton.closest('dialog')?.close();
 });
+for (const dialog of [deadlineDialog, profileDialog, document.querySelector('#movement-dialog')]) {
+  dialog.addEventListener('close', () => {
+    if (document.activeElement === document.body) document.querySelector('#main-content')?.focus();
+  });
+}
 backupFileInput.addEventListener('change', () => {
   const [file] = backupFileInput.files;
   if (file) restoreBackup(file);

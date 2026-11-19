@@ -35,7 +35,7 @@ Per fermare il servizio usa `Ctrl+C` nel terminale. Per avere controlli anche qu
 - salva il risultato pubblico in `assets/catalog/source-monitoring.json` e lo stato necessario al controllo successivo in `backend/data/source-state.json`;
 - pubblica su GitHub Pages solo l'app e i cataloghi pubblici, senza esporre la cartella `backend`, quando la pubblicazione è abilitata.
 
-Il progetto è collegato a `https://github.com/hermanbuhl1953-inc/scadenzario`. Il monitoraggio pianificato è stato eseguito; la pubblicazione Pages è disattivata finché non viene abilitata nelle impostazioni del repository. Per pubblicare, prima verifica che il piano supporti GitHub Pages per un repository privato e decidi se il sito può essere pubblico. Poi configura **Settings → Pages → Build and deployment → GitHub Actions** e crea la variabile Actions `PUBLISH_GITHUB_PAGES` con valore `true` in **Settings → Secrets and variables → Actions → Variables**. Le esecuzioni successive pubblicano il sito; se il piano o la configurazione non lo consentono, lascia la variabile non impostata e il monitoraggio continuerà comunque.
+Il repository indicato per questa base è `https://github.com/hermanbuhl1953-inc/TESTAA26.git`, attualmente privato. Il monitoraggio pianificato è stato eseguito; la pubblicazione Pages è disattivata finché non viene abilitata nelle impostazioni del repository. Per pubblicare, prima verifica che il piano supporti GitHub Pages per un repository privato e decidi se il sito può essere pubblico. Poi configura **Settings → Pages → Build and deployment → GitHub Actions** e crea la variabile Actions `PUBLISH_GITHUB_PAGES` con valore `true` in **Settings → Secrets and variables → Actions → Variables**. Le esecuzioni successive pubblicano il sito; se il piano o la configurazione non lo consentono, lascia la variabile non impostata e il monitoraggio continuerà comunque.
 
 I risultati pubblicati sono uno snapshot: l'applicazione resta statica; GitHub Actions aggiorna lo stato delle fonti e ridistribuisce il sito. Il workflow registra le impronte delle pagine nel repository per poter rilevare variazioni tra esecuzioni. Non caricare nel repository credenziali, documenti o dati personali. I controlli possono essere ritardati da GitHub o fallire se una fonte blocca richieste automatiche.
 
@@ -117,6 +117,20 @@ docs/BACKLOG_SPRINTS.md
 ```
 
 Il codice Flutter iniziale è ancora presente in `lib/` e `test/` come materiale di riferimento, ma non è usato dalla versione web né serve installare Flutter per avviarla.
+
+## Home professionale e Radar locale
+
+L’aggiornamento aggiunge **Home → Da gestire / Attendibilità / Andamento / Prossime scadenze**, Radar deterministico con azioni effettive e **Agenda** con periodi esclusivi, categoria e stato. Navigazione equivalente desktop/mobile: **Home · Agenda · Planning · Altro**; in Altro restano Opportunità, Suggerimenti, Profilo/Impostazioni e Backup. Nessun account, nuova dipendenza o migrazione finanziaria.
+
+I risultati Home e Planning usano lo stesso `planning.js` e la stessa data finale; non sono disponibili selettori periodo decorativi. Radar è derivato dai dati, senza LLM o pagamento automatico. Informazioni, limiti e applicazione del **delta sul nuovo ramo `home-radar`**: [`docs/HOME_RADAR.md`](./docs/HOME_RADAR.md). Le precedenti istruzioni `planning-affidabile` restano documentazione storica, non istruzioni per questo delta.
+
+```powershell
+npm run test:planning
+npm run test:radar
+node scripts/build-pages.mjs
+```
+
+Esiti effettivamente misurati, dipendenze non disponibili e limiti della prova visuale: [`VERIFICA_HOME_RADAR.txt`](./VERIFICA_HOME_RADAR.txt). Nessun monitoraggio backend è stato avviato per realizzare o verificare l’aggiornamento.
 
 ## Prossimi incrementi
 
