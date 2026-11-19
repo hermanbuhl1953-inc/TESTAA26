@@ -1,10 +1,11 @@
-const CACHE_NAME = 'scadenzario-shell-v9-planning-fix';
+const CACHE_NAME = 'scadenzario-shell-v10-home-radar';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './planning.js',
+  './radar.js',
   './manifest.webmanifest',
   './assets/catalog/deadlines.json',
   './assets/catalog/benefits.json',

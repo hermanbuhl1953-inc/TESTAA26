@@ -1,0 +1,71 @@
+VERIFICA HOME / AGENDA / RADAR — 19 novembre 2026
+
+BASE E INTEGRITÀ
+Input: /mnt/workspace/input/TESTAA26-main (2).zip (mai modificato).
+Commento ZIP letto: 5ee6395200412f5b3be82dd05f20a6fefa4f0881.
+Corrisponde al prefisso dichiarato 5ee6395; nessuna verifica remota/Git della cronologia, archivio senza .git.
+SHA-256 input: ea9d84023521eaa3dac262873218b31a198f526f5767327ec9b75733140fc62e.
+191226 byte archivio; 150 voci, 101 file; 544861 byte decompressi, 165386 byte compressi delle voci.
+Traversal/nomi assoluti/backslash/drive letter: nessuno. Symlink: nessuno. Duplicati normalizzati: nessuno. CRC input: OK.
+Estrazione normalizzata: /mnt/workspace/working/scadenzario-home-radar/project.
+working/scadenzario-planning non utilizzato né modificato. Nessuna cancellazione di file base.
+
+IMPLEMENTAZIONE
+- Home nell’ordine: Da gestire (max 3 schede + Apri Radar), Attendibilità del piano, Andamento previsto, Prossime scadenze.
+- Radar deterministico derivato dai dati: configurazione, criticità aggregata con spiegazione/movimenti, uscite aperte scadute o con cassa passata, entrate con cassa attesa passata, dati mancanti. Identità per tipo+occorrenza, gravità/data, lista completa senza troncamento non dichiarato.
+- CTA collegate ai flussi reali: saldo, Planning risultati, pagamento/incasso, modifica singola. Ricalcolo dopo registrazione e annullamento, nessuna eliminazione automatica o spostamento della scadenza legale.
+- Home/Planning stesso planning.js e orizzonte effettivo. Prima sotto riserva, prima sottozero, minimo e relative date distinti; riserva zero senza falso allarme. Avvisi prossimi ai risultati, nessuno zero finto al posto di una previsione non calcolabile.
+- Agenda Oggi/Prossime/Arretrati, categoria/stato combinabili; giorno selezionato esplicito; calendario alternativo e storico con completate/archiviate accessibili.
+- Navigazione desktop/mobile Home, Agenda, Planning, Altro; Opportunità, Suggerimenti, Impostazioni/Profilo e Backup conservati. Niente aria-live sull’intero app; status mirati, focus destinazioni, calendario senza grid ARIA incompleta.
+- Stile navy e fondo caldo chiaro, font di sistema/base 16px, importi tabulari, controlli usabili, nessuna nuova immagine/CDN/dipendenza.
+- Nessun grafico nuovo: priorità a numeri attendibili, spiegazioni e tabelle.
+- Cache scadenzario-shell-v10-home-radar; nuovo modulo radar.js incluso nell’app, cache, allowlist server e build Pages, con percorsi relativi.
+
+TEST REALMENTE ESEGUITI
+Ambiente: Linux, Node v24.22.1, npm 11.19.1; nessuna installazione e nessun accesso rete.
+1) npm run test:planning -> PASS: 55 test, 55 superati, 0 falliti, 0 saltati.
+   Nessuna asserzione dei 55 test eliminata o attenuata: nel DOM harness aggiunti soltanto import/iniezione del nuovo modulo e aggiornamento del nome cache atteso.
+2) npm run test:radar -> PASS: 40 test nuovi, 40 superati, 0 falliti, 0 saltati.
+   22 test puri + 18 integrazione DOM minimo, con fetch sempre disabilitato.
+   Coprono: configurazione incompleta, dati mancanti, cassa passata con scadenza futura/oltre orizzonte, entrata non incassata, archiviate e saldate escluse dagli arretrati, dedupe e ordine, nessuna mutazione, pagamento/incasso che risolvono e annullamenti che riaprono, riserva zero, date prima criticità/zero/minimo distinte, riuso esatto del motore, errori visibili senza zeri fittizi, lista oltre tre, filtri Oggi/categoria/giorno/stato, Prossime dopo oggi, storico, route e menu equivalenti, CTA e focus di destinazione nel DOM harness, escaping titoli/id/date, shell e moduli relativi.
+   Totale delle due suite: 95 test, 95 superati, 0 falliti.
+3) node --check -> PASS su 9 file:
+   app.js, radar.js, planning.js, service-worker.js, server.mjs, scripts/build-pages.mjs,
+   test/planning/app-integration.test.mjs, test/radar/app-integration.test.mjs, test/radar/radar.test.mjs.
+4) node scripts/build-pages.mjs -> PASS.
+   Verifica aggiuntiva locale: 14 file pubblici generati; 7 file root (app, radar, planning, index, styles, service-worker, manifest) byte-identici ai sorgenti; niente backend/src/lib/data/test/node_modules nel sito. Risoluzione dei moduli relativi conserva /TESTAA26/ come sottocartella (nessuna richiesta HTTP).
+   Cartella site/ di questa sola prova rimossa dopo la verifica; non inclusa nel delta.
+5) JSON package.json/package-lock.json -> parsing OK; dipendenze e package-lock.json invariati.
+6) Confronto SHA-256 con tutti i file originali dello ZIP: 9 modificati, 92 originali invariati, 5 nuovi, 0 rimossi. Protezioni verificate byte per byte:
+   backend/ 10 file; data/ 5; assets/ 3; src/ 22; lib/ 20; planning.js;
+   package-lock.json, validatori e test finanziari puri invariati. Vecchio VERIFICA_PLANNING.txt e docs/PLANNING_AFFIDABILE.md invariati.
+   Tutte le 101 impronte base ricontrollate anche contro le voci dell’input rimasto intatto.
+7) ZIP delta: verifica CRC integrale e confronto esatto nomi/contenuti con i file aggiunti/modificati; nessun wrapper né file estraneo. SHA-256, CRC per voce, base/result hash per ogni delta e hash dei 92 file preservati nel manifest esterno MANIFEST_HOME_RADAR.json.
+
+NON ESEGUITI (LIMITI ESPLICITI)
+- npm run test:all, npm run typecheck e suite backend: NON ESEGUITI perché le dipendenze previste non sono presenti. Risoluzione locale di typescript, zod, openai, pdf-parse: NOT AVAILABLE. Nessuna installazione, né esito verde dichiarato per questi comandi. I file backend/src e dipendenze sono preservati.
+- Browser/screenshot/QA visuale, touch, screen reader, focus nativo, installazione PWA e aggiornamento offline: NON ESEGUITI. Nessun eseguibile Chromium/Chrome/Firefox trovato e playwright/puppeteer non disponibili. Il DOM minimo simulato non equivale a un browser reale. Restano prove manuali mobile/desktop/offline da fare prima dell’uso personale.
+- Non avviato server.mjs, monitor fonti o altre attività backend; nessun comando ingest/refresh. Nessuna chiamata a GitHub, push/commit, sincronizzazione, nuova AI o credenziale.
+
+FILE ESATTI DEL DELTA (14)
+Modificati (9):
+README.md
+app.js
+index.html
+package.json
+scripts/build-pages.mjs
+server.mjs
+service-worker.js
+styles.css
+test/planning/app-integration.test.mjs
+Nuovi (5):
+VERIFICA_HOME_RADAR.txt
+docs/HOME_RADAR.md
+radar.js
+test/radar/app-integration.test.mjs
+test/radar/radar.test.mjs
+Nessuna cancellazione. ZIP e manifest NON contengono .git, node_modules, site, dist, segreti o backup personali.
+
+APPLICAZIONE
+Nuovo ramo locale home-radar da main aggiornato/verificato, non il ramo storico planning-affidabile. Il delta non è un repository completo. Prima backup personale fuori Git e verifica delle divergenze base (anche CRLF/LF); nessun overwrite alla cieca. Procedura PowerShell con preflight, SHA e lista esatta git add in docs/HOME_RADAR.md.
+Nessun file è stato pubblicato: consegna di lavoro destinata alla revisione prima dell’eventuale distribuzione.
