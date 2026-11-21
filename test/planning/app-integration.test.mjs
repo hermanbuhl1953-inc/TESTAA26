@@ -145,7 +145,7 @@ test('integrazione: promemoria senza importo si completa e riapre senza inventar
 test('integrazione: shell, build statica e server includono il modulo finanziario', async () => {
   const [html, sw, server, build] = await Promise.all(['index.html', 'service-worker.js', 'server.mjs', 'scripts/build-pages.mjs'].map(file => readFile(new URL(`../../${file}`, import.meta.url), 'utf8')));
   assert.match(html, /src="\.\/app.js" type="module"/);
-  assert.match(sw, /'\.\/planning.js'/); assert.match(sw, /scadenzario-shell-v10-home-radar/);
+  assert.match(sw, /'\.\/planning.js'/); assert.match(sw, /scadenzario-shell-v11-cash-calendar/);
   assert.match(server, /'planning.js'/); assert.match(build, /'planning.js'/);
 });
 test('integrazione: home conserva scadenza oltre orizzonte e archivio si riattiva', () => {

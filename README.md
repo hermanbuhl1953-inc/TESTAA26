@@ -65,7 +65,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 - aggiunta, modifica, completamento, riapertura e archiviazione delle scadenze
 - categorie, date, importi in centesimi, ricorrenze mensili e promemoria
 - vista panoramica con stato delle scadenze e filtri
-- calendario mensile
+- calendario mensile per scadenze o flussi di cassa, con saldo giornaliero e avviso dei minimi sotto riserva
 - suggerimenti iniziali dal catalogo JSON, filtrati per profilo
 - proiezione indicativa a 12 mesi con saldo iniziale, riserva, entrate ricorrenti e scadenze registrate
 - consultazione delle misure nazionali per persone e famiglie nel catalogo JSON, con requisiti ISEE descritti separatamente per misura e senza raccolta di dati ISEE; catalogo parziale, non esaustivo e non idoneo a verificare automaticamente il diritto

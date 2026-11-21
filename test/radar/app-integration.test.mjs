@@ -182,6 +182,53 @@ test('Agenda DOM: semantica semplice senza grid incompleta, bottoni giorno con l
   assert.equal((html.match(/data-action="select-calendar-date"/g) ?? []).length, 42);
   assert.match(html, /data-action="select-calendar-date"[^>]+aria-pressed="(?:true|false)"[^>]+aria-label="[^"]+"/);
 });
+test('Calendario flussi: mostra entrate, uscite e minimo infragiornaliero sotto riserva', () => {
+  const data = readyState([{ ...deadline, dueDate: '2026-11-20', amountCents: 40000 }]);
+  data.planner.openingBalanceCents = 50000;
+  data.planner.reserveCents = 15000;
+  data.planner.incomes = [{
+    ...deadline, id: 'salary', title: undefined, name: 'Stipendio',
+    dueDate: '2026-11-20', amountCents: 30000, cashMode: 'same', cashDate: null,
+  }];
+  const h = harness(data);
+  assert.equal(h.api.currentRadar().projection?.rows.length, 2);
+  h.click('navigate', null, { view: 'calendar' });
+  h.click('calendar-mode', null, { mode: 'cash' });
+  assert.match(h.api.renderCalendar(), /<details class="agenda-calendar" open>/);
+  h.click('select-calendar-date', null, { date: '2026-11-20' });
+  const html = h.api.renderCalendar();
+  assert.match(html, /Saldo a inizio giornata<\/span><strong>500,00 €/);
+  assert.match(html, /Entrate · previste \/ incassate<\/span><strong>300,00 € \/ 0,00 €/);
+  assert.match(html, /Uscite · previste \/ pagate<\/span><strong>400,00 € \/ 0,00 €/);
+  assert.match(html, /Saldo a fine giornata<\/span><strong>400,00 €/);
+  assert.match(html, /Minimo intragiornaliero prudenziale: <strong>100,00 €/);
+  assert.match(html, /class="calendar-day[^"]*below-reserve/);
+  assert.match(html, /Uscita prevista/);
+  assert.match(html, /Entrata prevista/);
+  h.click('calendar-mode', null, { mode: 'deadlines' });
+  assert.match(h.api.renderCalendar(), /<details class="agenda-calendar" open>/);
+});
+test('Calendario flussi: effettivi sostituiscono le previsioni e dati non stimabili non mostrano zero', () => {
+  const data = readyState([{
+    ...deadline, dueDate: '2026-11-20', amountCents: 40000,
+    overrides: { '2026-11-20': { actual: { date: '2026-11-17', amountCents: 45000 } } },
+  }]);
+  const h = harness(data);
+  h.click('navigate', null, { view: 'calendar' });
+  h.click('calendar-mode', null, { mode: 'cash' });
+  h.click('select-calendar-date', null, { date: '2026-11-17' });
+  let html = h.api.renderCalendar();
+  assert.match(html, /Uscite · previste \/ pagate<\/span><strong>0,00 € \/ 450,00 €/);
+  assert.match(html, /Pagamento effettivo/);
+  assert.doesNotMatch(html, /400,00 € \/ 450,00 €/);
+
+  const noBalance = harness(savedState());
+  noBalance.click('navigate', null, { view: 'calendar' });
+  noBalance.click('calendar-mode', null, { mode: 'cash' });
+  html = noBalance.api.renderCalendar();
+  assert.match(html, /Imposta un saldo di riferimento valido/);
+  assert.doesNotMatch(html, /Saldo a fine giornata/);
+});
 test('Sicurezza DOM: titoli, categorie, note, id e date sono escaped nelle nuove viste', () => {
   const payload = '<img src=x onerror="globalThis.bad=1">';
   const h = harness(readyState([{ ...deadline, title: payload, notes: payload, id: 'x" onclick="evil', category: 'casa' }]));
@@ -213,7 +260,7 @@ test('Home e Planning: stesso motore e periodo effettivo, no selettori periodo d
 test('PWA: nuovo modulo incluso in shell, cache, build e allowlist con percorsi relativi', async () => {
   const [html, sw, server, build, app] = await Promise.all(['index.html', 'service-worker.js', 'server.mjs', 'scripts/build-pages.mjs', 'app.js'].map(file => readFile(new URL(`../../${file}`, import.meta.url), 'utf8')));
   assert.doesNotMatch(html, /id="app"[^>]*aria-live/);
-  assert.match(sw, /scadenzario-shell-v10-home-radar/);
+  assert.match(sw, /scadenzario-shell-v11-cash-calendar/);
   assert.match(sw, /'\.\/radar.js'/); assert.match(server, /'radar.js'/); assert.match(build, /'radar.js'/);
   assert.match(app, /from '\.\/radar.js'/);
   assert.doesNotMatch(app, /from '\/radar.js'/);
