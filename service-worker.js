@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scadenzario-shell-v11-cash-calendar';
+const CACHE_NAME = 'scadenzario-shell-v12-home-refinement';
 const APP_SHELL = [
   './',
   './index.html',

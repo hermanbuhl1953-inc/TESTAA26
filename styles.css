@@ -360,7 +360,20 @@ summary { cursor: pointer; color: var(--navy); font-weight: 650; min-height: 44p
 .calculation-details li { margin-block: 8px; }
 .radar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
 .radar-card { padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow-wrap: anywhere; }
-.home-priorities .radar-card { background: var(--navy-pale); }
+.home-priorities { margin-block: 16px 24px; padding: 20px; }
+.home-priorities .radar-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; align-items: start; }
+.home-priorities .radar-card { min-width: 0; padding: 14px; background: var(--navy-pale); }
+.home-priorities .radar-card h3 { font-size: 17px; line-height: 1.35; }
+.home-priorities .radar-card p { font-size: 15px; line-height: 1.5; }
+.home-priorities .radar-card .eyebrow { font-size: 11px; }
+.home-priorities .radar-card .radar-dates { font-size: 14px; }
+.home-priorities .radar-actions { gap: 8px; margin-block-start: 12px; }
+.home-priorities .radar-actions > * { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.home-priorities .radar-actions .button { padding: 8px 12px; font-size: 15px; }
+.home-priorities .radar-card details ul { padding-inline-start: 20px; }
+.home-priorities .section-heading { flex-wrap: wrap; }
+.home-priorities .section-heading > div { flex: 1 1 240px; min-width: 0; }
+.home-priorities .section-heading > .button { flex-shrink: 0; }
 .radar-card h3 { font-size: 18px; margin-block: 4px 8px; }
 .radar-card p { margin-block: 8px; }
 .radar-card .eyebrow { margin-block: 0; color: var(--text-muted); }
@@ -426,6 +439,9 @@ summary { cursor: pointer; color: var(--navy); font-weight: 650; min-height: 44p
   .content { padding: 24px 16px 40px; }
   .plan-panel { padding: 16px; margin-block: 20px; }
   .radar-card { padding: 16px; }
+  .home-priorities .radar-list { grid-template-columns: minmax(0, 1fr); }
+  .home-priorities .radar-card { padding: 14px; }
+  .home-priorities .radar-actions > * { width: 100%; text-align: start; }
   .trend-metrics { grid-template-columns: 1fr; }
   .deadline-right { width: 100%; max-width: none; justify-items: start; }
   .deadline-right .card-actions { justify-self: start; justify-content: start; }

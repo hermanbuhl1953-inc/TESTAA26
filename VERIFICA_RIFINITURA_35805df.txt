@@ -1,0 +1,118 @@
+VERIFICA RIFINITURA HOME — BASE 35805df — 23 novembre 2026
+
+ORIGINE
+Input intatto: TESTAA26-main (4).zip
+SHA-256: 399b97b7abd89bc3b057ff3f5aa205abe869298b56e055b85e761cfbe14a2516
+Commento ZIP: 35805df6c50231613652eb58162fbaa2957c0bb2
+Il commento non prova git history; nessun accesso remoto o controllo di ancestry.
+Memoria /mnt/project/memory.md assente (non bloccante).
+Preflight: 218116 byte archivio, 156 voci, 106 file, 628788 byte decompressi;
+root TESTAA26-main/, CRC integro, nessun traversal/symlink, estrazione solo
+sotto working/scadenzario-rifinitura-35805df/project.
+Vecchio pacchetto non applicato e non usato come base.
+
+CONFRONTO PRIMA / DOPO
+Home: prima tre schede grandi in singola colonna; dopo griglia adattiva 2/3
+colonne con spazio sufficiente, una colonna mobile <=760px; nessun testo o
+avviso nascosto, altezza fissa o cambiamento d'ordine delle sezioni.
+Resta massimo 3 priorità in Home, elenco Radar intero, Attendibilità e
+Come viene calcolato, Andamento e Prossime. Nessun grafico aggiunto.
+Date UI strutturate: italiano con anno. Date input, dataset, storage,
+identificativi occorrenza e backup: ISO invariati.
+Date civili: parser originale invariato; solo formatDate difensiva su null,
+oggetti, Date invalide e giorni impossibili. Test DST in tre fusi.
+Termini: Data prevista di pagamento / incasso, Data prevista per promemoria.
+Nessuna sostituzione globale su testi utente o diagnostica finanziaria.
+
+CALENDARIO NUOVO, LETTO E PRESERVATO
+Scadenze/Flussi di cassa, 42 celle settimanali da lunedì, mese precedente e
+successivo, giorno selezionato/focus e filtri originali conservati.
+Dettaglio giornaliero: saldo iniziale, entrate previste/incassate, uscite
+previste/pagate, saldo finale, minimo prudenziale. Uscite prima entrate,
+soglie sotto riserva/sotto zero, avvisi e date non stimabili conservati.
+Due test originali Calendario flussi della nuova base immutati integralmente.
+getCalendarCashDays byte-identica: SHA-256 del blocco funzione
+b18b4579af266f1c38102c8b8c6ad3cd0c5e6c62dd6806974ccc1be1824c01c5
+Solo presentazione date/intervalli localizzata, nessun calcolo modificato.
+Nessun bug contabile fuori perimetro corretto di nascosto.
+
+CORREZIONE PRESTAZIONALE DOPO REVIEW INDIPENDENTE
+Il primo delta non pubblicato introduceva findOccurrence() nel renderer per
+ogni etichetta Radar: su 1200 aperte misurati 1200 lookup/generazioni e
+720600 occorrenze rigenerate. Il nuovo test ha riprodotto il difetto prima
+della correzione (asserzione 1200 lookup contro zero attesi).
+Ora una sola Map delle serie già presenti per rendering, lookup diretto di
+importo/override con chiave originale; nessuna generazione di occorrenze.
+Misure corrette: 1 indicizzazione, 0 lookup findOccurrence, 0 generazioni,
+0 occorrenze rigenerate per 1200 etichette. Nessuna soglia di timing usata.
+Ulteriori test: override pari a zero/positivo, ID con @, entrate, fallback
+neutro e rendering Home/Agenda/Radar/Planning senza lookup aggiuntivi.
+Le generazioni app-level delle quattro viste restano rispettivamente
+1/1/0/0 nella fixture da 1200, solo per elenchi già presenti nella base.
+I motori reali non sono modificati e le loro chiamate interne non sono
+sostituite: la strumentazione conta soltanto l'import app-level occurrences.
+ZIP e manifest ricreati nello stesso percorso; non pubblicati.
+
+TEST MISURATI
+BASE ORIGINALE, prima delle modifiche:
+- npm run test:planning: 55 test, 55 pass, 0 fail, 0 skip.
+- npm run test:radar: 42 test, 42 pass, 0 fail, 0 skip.
+
+DELTA FINALE:
+- npm run test:planning: 55 test, 55 pass, 0 fail, 0 skip.
+- npm run test:radar: 42 test, 42 pass, 0 fail, 0 skip.
+- npm run test:ui: 20 test, 20 pass, 0 fail, 0 skip.
+  Di cui 10 UI rifinitura/prestazioni e 10 calendario.
+- npm run test:calendar: 10 test, 10 pass, 0 fail, 0 skip (sottoinsieme UI).
+Totale distinto: 117 test (non sommare di nuovo test:calendar).
+
+STESSI TEST CALENDARIO PRIMA/DOPO:
+- UTC: originale 10/10, delta 10/10.
+- Europe/Rome: originale 10/10, delta 10/10.
+- America/New_York: originale 10/10, delta 10/10.
+30 verifiche sulla base e 30 sul delta; non sono 60 test distinti nuovi.
+Coprono entrate/uscite/effettivi, sostituzione previsione, inclusione effettivi
+nella data saldo, carry saldo, limiti temporali, mesi dicembre/gennaio,
+bisestile e DST, aggregati mensili/periodo parziale, navigazione/modalità,
+input ISO, escaping, avvisi e non mutazione di stato/proiezione/storage.
+I nuovi test sono compatibili con l'app originale mediante variabile di
+sola prova SCADENZARIO_TEST_APP; nessuna modifica runtime richiesta.
+
+node --check: superati app.js, planning.js, radar.js, service-worker.js,
+server.mjs, scripts/build-pages.mjs e i tre file test/ui/*.mjs (9 file).
+node scripts/build-pages.mjs: riuscita. File pubblici identici ai sorgenti,
+planning.js e radar.js inclusi; backend assente dalla build; build generata
+non inserita nel delta. server.mjs e lista moduli build non modificati.
+
+HARNESS ORIGINALE
+Nessuna asserzione rimossa o indebolita: solo attese testo italiano
+(Scadenza, Data prevista di incasso, giorno selezionato, fine orizzonte) e
+cache v12, in 5 righe Radar e 1 Planning. Test logica motori intatti.
+Durante lo sviluppo un nuovo controllo CSS ha inizialmente confuso
+line-height con height: corretto il confine della proprietà nel nuovo test;
+nessuna esclusione di test per ottenere verde.
+
+NON ESEGUITI / LIMITI
+npm run test:all, npm run typecheck e test backend NON eseguiti:
+TypeScript, openai, pdf-parse, zod non disponibili. Nessuna installazione,
+controllo versioni, rete o server backend/monitor/refresh avviato.
+Browser, Playwright e Puppeteer non disponibili: nessuna QA reale,
+screenshot desktop/mobile, prova touch/screen-reader o PWA offline.
+Le verifiche CSS/DOM sono strutturali, non misurazioni di layout reale.
+Da verificare in browser già disponibile: 360/390px e desktop, testi lunghi,
+focus tastiera, dialoghi, calendario mesi/flussi e aggiornamento offline.
+
+PRESERVAZIONE / PACCHETTO
+7 file base modificati, 5 aggiunti; delta 12 file relativi senza wrapper,
+nessuna cancellazione. 99 file base non delta preservati byte per byte.
+planning.js, radar.js, package-lock.json, backend/, src/, lib/,
+assets/catalog/, server.mjs, build-pages.mjs e vecchi report/README invariati.
+Handler finanziari, schema v2, validazione, persistenza, backup, date input
+immutati; dialogo movimento cambia solo due assegnazioni testuali.
+Cache incrementata da v11-cash-calendar a v12-home-refinement, shell intatta.
+Manifest SHA-256 sibling MANIFEST_RIFINITURA_35805df.json: hash grezzi e
+normalizzati CRLF per base/delta, CRC voci e integrità ZIP. Manifest separato
+non fa parte dei file da sovrascrivere nel clone. Nessun commit/push.
+Istruzioni PowerShell con preflight integrale, ramo nuovo rifinitura-home
+(o nome diverso se già esiste), backup fuori Git ed elenco esatto git add
+in docs/RIFINITURA_HOME_35805df.md. Nessuna pubblicazione effettuata.
