@@ -1,19 +1,30 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { ingestManualRecords } from '../src/services/ingestion/manual-import.ts';
+import { MANUAL_IMPORT_USAGE, parseManualImportArgs } from './ingest-manual-args.mjs';
 
 async function main() {
-  const fileArgument = process.argv[2];
-  if (!fileArgument) {
-    console.error('Uso: npm run ingest:manual -- <file.json>');
+  let args;
+  try {
+    args = parseManualImportArgs(process.argv.slice(2));
+  } catch (error) {
+    console.error(error.message);
+    console.error(MANUAL_IMPORT_USAGE);
     process.exitCode = 2;
     return;
   }
 
   try {
+    const { fileArgument, asOf } = args;
     const filePath = path.resolve(process.cwd(), fileArgument);
     const payload = JSON.parse(await readFile(filePath, 'utf8'));
-    const { result } = ingestManualRecords(payload);
+    const { ingestManualRecords } = await import('../src/services/ingestion/manual-import.ts');
+    const { result } = ingestManualRecords(payload, asOf ? { now: () => asOf } : {});
+    console.log(`DATA DI RIFERIMENTO\n${result.startedAt}`);
+    if (asOf) {
+      console.warn('WARNING: CONTESTO STORICO NON VERIFICATO (--as-of): validazione alla data esplicita, non verifica dello stato attuale; nessuna pubblicazione, approvazione o promozione a VERIFIED.');
+    } else {
+      console.log('CONTESTO\nOROLOGIO CORRENTE');
+    }
     console.log(`SOURCE\n${result.sourceId}`);
     console.log(`\nINGESTION\n${result.status}`);
     console.log(`Record trovati: ${result.recordsFound}`);

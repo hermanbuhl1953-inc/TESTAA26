@@ -129,10 +129,14 @@ function parseIsoDate(value) {
     : null;
 }
 
-function formatDate(value, options = { day: 'numeric', month: 'short' }) {
+function formatDate(value, options = { day: 'numeric', month: 'short', year: 'numeric' }) {
   const date = typeof value === 'string' ? parseIsoDate(value) : value;
-  if (!date) return 'Data non valida';
+  if (!(date instanceof Date) || !Number.isFinite(date.getTime())) return 'Data non valida';
   return new Intl.DateTimeFormat('it-IT', options).format(date);
+}
+
+function expectedDateLabel(income = false, amountCents = 0) {
+  return income ? 'Data prevista di incasso' : amountCents > 0 ? 'Data prevista di pagamento' : 'Data prevista';
 }
 
 function dayDifference(dateString) {
@@ -433,7 +437,7 @@ function renderMore() {
 function renderCalculation(radar) {
   const p = state.planner;
   return `<details class="calculation-details"><summary>Come viene calcolato?</summary>
-    <p>Saldo di riferimento: ${p.ready ? escapeHtml(formatAmount(p.openingBalanceCents)) : 'non impostato'}; data: ${p.balanceDate ? escapeHtml(p.balanceDate) : 'non impostata'}. Orizzonte fino al ${escapeHtml(radar.end)} incluso, uguale in Home e Planning.</p>
+    <p>Saldo di riferimento: ${p.ready ? escapeHtml(formatAmount(p.openingBalanceCents)) : 'non impostato'}; data: ${p.balanceDate ? escapeHtml(formatDate(p.balanceDate)) : 'non impostata'}. Orizzonte fino al ${escapeHtml(formatDate(radar.end))} incluso, uguale in Home e Planning.</p>
     <ul><li>Effettivi prima del saldo già assorbiti; dopo il saldo applicati, anche se precedenti a oggi. Stessa data: ${p.sameDayActualsIncluded === true ? 'tutti inclusi nel saldo' : p.sameDayActualsIncluded === false ? 'nessuno incluso: applicati al saldo' : 'scelta tutti/nessuno ancora da completare'}. Nessuna selezione parziale.</li>
     <li>La previsione usa la cassa, non la scadenza legale. Effettivi sostituiscono le previsioni; entrate previste non sono ancora incassate. Archiviate escluse dalle previsioni, effettivi conservati.</li>
     <li>Casse sconosciute e previsioni arretrate escluse, mai spostate a oggi. Importi mancanti non sono stimati. Completamenti storici non riconciliati segnalati.</li>
@@ -447,8 +451,8 @@ function renderReliability(radar) {
   const excluded = radar.items.some(i => i.type === 'expense-overdue' && i.cashDate && i.cashDate < todayIso());
   return `<section class="plan-panel" aria-labelledby="reliability-title"><h2 id="reliability-title">Attendibilità del piano</h2>
     <p class="plan-state">${!p.ready ? 'Imposta il punto di partenza del tuo piano.' : incomplete ? 'La previsione non racconta ancora tutto.' : 'Previsione basata sui movimenti inseriti. Le spese non registrate non sono considerate.'}</p>
-    ${p.ready ? `<p>Saldo di riferimento <strong class="money">${formatAmount(p.openingBalanceCents)}</strong> al ${escapeHtml(p.balanceDate)} · Riserva <strong class="money">${formatAmount(p.reserveCents)}</strong>.</p>` : ''}
-    <p>Effettivi nella data saldo: ${p.sameDayActualsIncluded === true ? 'tutti già inclusi' : p.sameDayActualsIncluded === false ? 'nessuno incluso; applicati' : 'scelta mancante'}. Periodo: ${p.ready ? escapeHtml(p.balanceDate) : 'saldo da impostare'} → ${escapeHtml(radar.end)}.</p>
+    ${p.ready ? `<p>Saldo di riferimento <strong class="money">${formatAmount(p.openingBalanceCents)}</strong> al ${escapeHtml(formatDate(p.balanceDate))} · Riserva <strong class="money">${formatAmount(p.reserveCents)}</strong>.</p>` : ''}
+    <p>Effettivi nella data saldo: ${p.sameDayActualsIncluded === true ? 'tutti già inclusi' : p.sameDayActualsIncluded === false ? 'nessuno incluso; applicati' : 'scelta mancante'}. Periodo: ${p.ready ? escapeHtml(formatDate(p.balanceDate)) : 'saldo da impostare'} → ${escapeHtml(formatDate(radar.end))}.</p>
     ${excluded ? '<p class="inline-warning">Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale.</p>' : ''}
     ${radar.error ? `<p class="inline-warning">Previsione non calcolabile: ${escapeHtml(radar.error)}</p>` : ''}
     ${state.migrationNotice ? `<p class="inline-warning">${escapeHtml(state.migrationNotice)}</p>` : ''}
@@ -459,29 +463,38 @@ function renderReliability(radar) {
 
 function renderTrend(radar) {
   const p = radar.projection;
-  return `<section class="plan-panel" aria-labelledby="trend-title"><h2 id="trend-title">Andamento previsto</h2><p>Stesso motore del Planning · fino al ${escapeHtml(radar.end)} incluso.</p>
+  return `<section class="plan-panel" aria-labelledby="trend-title"><h2 id="trend-title">Andamento previsto</h2><p>Stesso motore del Planning · fino al ${escapeHtml(formatDate(radar.end))} incluso.</p>
     ${!p ? '<p>Previsione non calcolabile: completa o correggi i dati del piano. Nessun valore stimato viene sostituito con zero.</p>' : `
     ${p.warnings.length || state.migrationNotice ? '<p class="inline-warning">La previsione non racconta ancora tutto. Dati esclusi o da verificare: i risultati possono sovrastimare il margine.</p>' : '<p>Previsione basata sui movimenti inseriti. Le spese non registrate non sono considerate.</p>'}
     ${radar.items.some(i => i.type === 'expense-overdue' && i.cashDate && i.cashDate < todayIso()) ? '<p class="inline-warning">Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale.</p>' : ''}
-    <dl class="trend-metrics"><div><dt>Prima sotto riserva</dt><dd>${p.firstCriticalDate ? escapeHtml(p.firstCriticalDate) : 'Non rilevata nei movimenti noti'}${state.planner.reserveCents === 0 ? ' (riserva 0,00 €)' : ''}</dd></div>
-    <div><dt>Prima sotto zero</dt><dd>${p.firstBelowZero ? escapeHtml(p.firstBelowZero) : 'Non rilevata nei movimenti noti'}</dd></div>
-    <div><dt>Minimo dal saldo di riferimento</dt><dd class="money">${formatAmount(p.minimumCents)}<small>Il ${escapeHtml(p.minimumDate)}</small></dd></div>
+    <dl class="trend-metrics"><div><dt>Prima sotto riserva</dt><dd>${p.firstCriticalDate ? escapeHtml(formatDate(p.firstCriticalDate)) : 'Non rilevata nei movimenti noti'}${state.planner.reserveCents === 0 ? ' (riserva 0,00 €)' : ''}</dd></div>
+    <div><dt>Prima sotto zero</dt><dd>${p.firstBelowZero ? escapeHtml(formatDate(p.firstBelowZero)) : 'Non rilevata nei movimenti noti'}</dd></div>
+    <div><dt>Minimo dal saldo di riferimento</dt><dd class="money">${formatAmount(p.minimumCents)}<small>Il ${escapeHtml(formatDate(p.minimumDate))}</small></dd></div>
     <div><dt>Margine rispetto alla riserva</dt><dd class="money">${formatAmount(p.marginCents)}</dd></div></dl>`}
     <button class="button button-quiet" type="button" data-action="planning-results">Apri Planning</button></section>`;
 }
 
+function radarExpectedDateLabel(item, expenseSeriesById) {
+  if (item.income) return expectedDateLabel(true);
+  const split = typeof item.occurrenceId === 'string' ? item.occurrenceId.lastIndexOf('@') : -1;
+  const series = split < 0 ? null : expenseSeriesById.get(item.occurrenceId.slice(0, split));
+  const amountCents = series ? series.overrides[item.occurrenceId.slice(split + 1)]?.amountCents ?? series.amountCents : 0;
+  return expectedDateLabel(false, amountCents);
+}
+
 function renderRadarItems(items) {
   if (!items.length) return '<p class="empty-context">Nessuna azione rilevata dalle regole sui dati inseriti. Non è una verifica di spese o entrate non registrate.</p>';
+  const expenseSeriesById = new Map(state.deadlines.map(series => [series.id, series]));
   return `<ol class="radar-list">${items.map(item => `<li class="radar-card"><article><p class="eyebrow">${item.severity === 0 ? 'PRIORITÀ PIANO' : item.severity === 1 ? 'DA VERIFICARE' : 'DATI DA COMPLETARE'}</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p>
-    ${item.occurrenceId && item.dueDate ? `<p class="radar-dates">Scadenza: ${escapeHtml(item.dueDate)} · Cassa prevista: ${item.cashDate ? escapeHtml(item.cashDate) : 'non nota'}</p>` : ''}
-    ${item.type === 'critical' ? `<p>Prima sotto riserva: ${escapeHtml(item.firstCriticalDate ?? 'non rilevata')}; prima sotto zero: ${escapeHtml(item.firstBelowZero ?? 'non rilevata')}.</p><details><summary>Perché questa segnalazione?</summary><p>Saldo iniziale ${formatAmount(state.planner.openingBalanceCents)} al ${escapeHtml(state.planner.balanceDate)}; riserva ${formatAmount(state.planner.reserveCents)}. Movimenti applicati fino alla prima criticità/sottozero (incluse tutte le operazioni della giornata, uscite prima delle entrate):</p><ul>${item.movements.map(r => `<li>${escapeHtml(r.date)} · ${escapeHtml(r.label)} · ${formatAmount(r.amountCents)} → saldo ${formatAmount(r.balanceCents)}</li>`).join('') || '<li>Criticità già presente nel saldo iniziale.</li>'}</ul></details>` : ''}
+    ${item.occurrenceId && item.dueDate ? `<p class="radar-dates">Scadenza: ${escapeHtml(formatDate(item.dueDate))} · ${radarExpectedDateLabel(item, expenseSeriesById)}: ${item.cashDate ? escapeHtml(formatDate(item.cashDate)) : 'non nota'}</p>` : ''}
+    ${item.type === 'critical' ? `<p>Prima sotto riserva: ${item.firstCriticalDate ? escapeHtml(formatDate(item.firstCriticalDate)) : 'non rilevata'}; prima sotto zero: ${item.firstBelowZero ? escapeHtml(formatDate(item.firstBelowZero)) : 'non rilevata'}.</p><details><summary>Perché questa segnalazione?</summary><p>Saldo iniziale ${formatAmount(state.planner.openingBalanceCents)} al ${escapeHtml(formatDate(state.planner.balanceDate))}; riserva ${formatAmount(state.planner.reserveCents)}. Movimenti applicati fino alla prima criticità/sottozero (incluse tutte le operazioni della giornata, uscite prima delle entrate):</p><ul>${item.movements.map(r => `<li>${escapeHtml(formatDate(r.date))} · ${escapeHtml(r.label)} · ${formatAmount(r.amountCents)} → saldo ${formatAmount(r.balanceCents)}</li>`).join('') || '<li>Criticità già presente nel saldo iniziale.</li>'}</ul></details>` : ''}
     <div class="radar-actions"><button class="button button-primary" type="button" data-action="${item.action}"${item.occurrenceId ? ` data-id="${escapeHtml(item.occurrenceId)}"` : ''}${item.view ? ` data-view="${item.view}"` : ''}>${item.actionLabel}</button>
     ${item.editAction ? `<button class="text-button" type="button" data-action="${item.editAction}" data-id="${escapeHtml(item.occurrenceId)}">Aggiorna previsione / modifica singola</button>` : ''}</div></article></li>`).join('')}</ol>`;
 }
 
 function renderRadar() {
   const radar = currentRadar();
-  return `<p class="eyebrow">REGOLE SPIEGABILI · SOLO DATI LOCALI</p><h1 class="page-title">Radar</h1><p class="page-description">${radar.items.length} segnalazioni, ordinate per gravità e data. Occorrenze considerate dall’ancora delle serie fino al ${escapeHtml(radar.end)}, incluse eccezioni e casse anticipate riconosciute dal motore. Nessun troncamento dell’elenco; limite motore 100.000 passi per serie, con errore visibile.</p>${renderRadarItems(radar.items)}${renderCalculation(radar)}`;
+  return `<p class="eyebrow">REGOLE SPIEGABILI · SOLO DATI LOCALI</p><h1 class="page-title">Radar</h1><p class="page-description">${radar.items.length} segnalazioni, ordinate per gravità e data. Occorrenze considerate dall’ancora delle serie fino al ${escapeHtml(formatDate(radar.end))}, incluse eccezioni e casse anticipate riconosciute dal motore. Nessun troncamento dell’elenco; limite motore 100.000 passi per serie, con errore visibile.</p>${renderRadarItems(radar.items)}${renderCalculation(radar)}`;
 }
 
 function renderHome() {
@@ -493,7 +506,7 @@ function renderHome() {
     return sortDeadlines(occurrences([series], end).filter(o => !o.completed && o.dueDate >= todayIso())).slice(0, 1);
   })); }
   catch (error) { listError = error.message; }
-  return `<p class="eyebrow">SCADENZARIO · ${escapeHtml(todayIso())}</p><h1 class="page-title">Il tuo piano, in chiaro.</h1>
+  return `<p class="eyebrow">SCADENZARIO · ${escapeHtml(formatDate(todayIso()))}</p><h1 class="page-title">Il tuo piano, in chiaro.</h1>
     <section class="plan-panel home-priorities" aria-labelledby="priorities-title"><div class="section-heading"><div><h2 id="priorities-title">Da gestire</h2><p>${radar.items.length} segnalazioni · al massimo 3 qui, elenco completo nel Radar</p></div><button class="button button-quiet" type="button" data-action="navigate" data-view="radar">Apri Radar</button></div>${renderRadarItems(radar.items.slice(0, 3))}</section>
     ${renderReliability(radar)}${renderTrend(radar)}
     <section class="plan-panel"><div class="section-heading"><div><h2>Prossime scadenze</h2><p>Prima occorrenza aperta per serie, da oggi; tutte le occorrenze e lo storico in Agenda.</p></div><button class="button button-primary" type="button" data-action="new-deadline">Nuova scadenza</button></div>
@@ -566,7 +579,7 @@ function renderDeadlineCard(deadline) {
     </div>`;
   return `<article class="${classes.join(' ')}">
     <span class="date-icon">${icon('calendar')}<small>${escapeHtml(new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(date))}</small></span>
-    <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''} · Scadenza: ${escapeHtml(deadline.dueDate)} · Cassa prevista: ${deadline.cashDate ? escapeHtml(formatDate(deadline.cashDate)) : 'non nota'}${deadline.actual ? ` · Pagato ${escapeHtml(formatAmount(deadline.actual.amountCents))} il ${escapeHtml(formatDate(deadline.actual.date))}` : deadline.legacyCompleted ? ' · Storico: data/importo effettivi sconosciuti' : ''}</p></div>
+    <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''} · Scadenza: ${escapeHtml(formatDate(deadline.dueDate))} · ${expectedDateLabel(false, deadline.amountCents)}: ${deadline.cashDate ? escapeHtml(formatDate(deadline.cashDate)) : 'non nota'}${deadline.actual ? ` · Pagato ${escapeHtml(formatAmount(deadline.actual.amountCents))} il ${escapeHtml(formatDate(deadline.actual.date))}` : deadline.legacyCompleted ? ' · Storico: data/importo effettivi sconosciuti' : ''}</p></div>
     <div class="deadline-right">${amount ? `<span class="deadline-amount">${escapeHtml(amount)}</span>` : ''}<span class="status-pill ${status.className}">${escapeHtml(status.text)}</span>${actionButtons}</div>
   </article>`;
 }
@@ -640,7 +653,7 @@ function renderCalendarCashDetail(day, projection, projectionEnd, date) {
   }
   if (!day) {
     return `<section class="calendar-cash-detail"><h3>Flussi di cassa · ${escapeHtml(formatDate(date))}</h3>
-      <p class="empty-context">Questa data è fuori dall’intervallo stimabile (${escapeHtml(state.planner.balanceDate)} – ${escapeHtml(projectionEnd)}). Non viene mostrato un saldo ipotetico.</p></section>`;
+      <p class="empty-context">Questa data è fuori dall’intervallo stimabile (${escapeHtml(formatDate(state.planner.balanceDate))} – ${escapeHtml(formatDate(projectionEnd))}). Non viene mostrato un saldo ipotetico.</p></section>`;
   }
   const totalIncomeCents = day.incomeForecastCents + day.incomeActualCents;
   const totalExpenseCents = day.expenseForecastCents + day.expenseActualCents;
@@ -709,14 +722,14 @@ function renderCalendar() {
   }).join('');
   const selectedDeadlines = filterAgenda(all, { ...filters, period: agendaPeriod, date: selectedCalendarDate }, todayIso());
   const selectedCashDay = cashDays?.get(selectedCalendarDate);
-  const selection = { today: 'Oggi', upcoming: 'Prossime (dopo oggi)', overdue: 'Arretrati', all: 'Tutte le date / storico', day: `Giorno selezionato: ${selectedCalendarDate}` }[agendaPeriod];
+  const selection = { today: 'Oggi', upcoming: 'Prossime (dopo oggi)', overdue: 'Arretrati', all: 'Tutte le date / storico', day: `Giorno selezionato: ${formatDate(selectedCalendarDate)}` }[agendaPeriod];
   return `
     <p class="eyebrow">PIANIFICA</p><h1 class="page-title">Agenda</h1>
     <p class="page-description">Scadenze legali e storico. Il Calendario è una vista alternativa: selezionare un giorno attiva esplicitamente il filtro Giorno selezionato.</p>
     <div class="agenda-filters" aria-label="Filtri Agenda"><div class="period-filters" aria-label="Periodo esclusivo">
       ${[['today', 'Oggi'], ['upcoming', 'Prossime'], ['overdue', 'Arretrati'], ['all', 'Tutte / storico']].map(([period, label]) => `<button class="button ${agendaPeriod === period ? 'button-primary' : 'button-quiet'}" type="button" data-action="agenda-period" data-period="${period}" aria-pressed="${agendaPeriod === period}">${label}</button>`).join('')}</div>
       <div class="toolbar">${renderCategoryFilter()}${renderStatusFilter()}</div></div>
-    <p class="page-description">Elenco fino al ${escapeHtml(end)}, senza troncamento. Per date successive usa il mese del calendario. Completate e archiviate: scegli stato e Tutte / storico.</p>
+    <p class="page-description">Elenco fino al ${escapeHtml(formatDate(end))}, senza troncamento. Per date successive usa il mese del calendario. Completate e archiviate: scegli stato e Tutte / storico.</p>
     <details class="agenda-calendar"${calendarOpen || agendaPeriod === 'day' ? ' open' : ''}><summary>Calendario mensile · ${escapeHtml(monthName)}</summary>
     <div class="calendar-modes" role="group" aria-label="Vista del calendario">
       <button class="button ${calendarMode === 'deadlines' ? 'button-primary' : 'button-quiet'}" type="button" data-action="calendar-mode" data-mode="deadlines" aria-pressed="${calendarMode === 'deadlines'}">Scadenze</button>
@@ -822,14 +835,14 @@ function renderPlanning() {
         <div class="field-row">
           <label class="field"><span>Descrizione</span><input name="name" maxlength="60" required></label>
           <label class="field"><span>Importo netto (€)</span><input name="amount" inputmode="decimal" required></label>
-          <label class="field"><span>Prima data prevista di cassa</span><input name="date" type="date" required></label>
+          <label class="field"><span>Prima data prevista di incasso</span><input name="date" type="date" required></label>
           <label class="field"><span>Ricorrenza</span><select name="months"><option value="0">Una tantum</option><option value="1">Mensile</option><option value="3">Trimestrale</option><option value="12">Annuale</option></select></label>
           <label class="field"><span>Termine per data (facoltativo)</span><input name="endDate" type="date"></label>
           <label class="field"><span>Numero occorrenze (facoltativo)</span><input name="count" type="number" min="1" max="1200"></label>
         </div><button class="button button-quiet" type="submit">Aggiungi previsione</button>
       </form>
       ${incomeError ? `<p class="inline-warning">Entrate non calcolabili: ${escapeHtml(incomeError)}</p>` : ''}
-      <ul class="income-list">${incomeItems.map(o => `<li><span><strong>${escapeHtml(o.name)}</strong><small>Scadenza: ${escapeHtml(o.dueDate)} · Cassa prevista: ${o.cashDate ? escapeHtml(o.cashDate) : 'non nota'} · ${formatAmount(o.amountCents)}${o.archived ? ' · Serie archiviata' : ''} · ${o.actual ? `Incassato ${formatAmount(o.actual.amountCents)} il ${escapeHtml(formatDate(o.actual.date))}` : 'Previsto, non incassato'}</small></span><div class="toolbar"><button class="text-button" type="button" data-action="actual-income" data-id="${escapeHtml(o.id)}">${o.actual ? 'Correggi incasso' : 'Registra incasso'}</button>${o.actual ? `<button class="text-button" type="button" data-action="undo-income" data-id="${escapeHtml(o.id)}">Annulla incasso</button>` : `<button class="text-button" type="button" data-action="edit-income" data-id="${escapeHtml(o.id)}">Modifica singola</button>`}<button class="text-button" type="button" data-action="${o.archived ? 'restore-income' : 'remove-income'}" data-id="${escapeHtml(o.seriesId)}">${o.archived ? 'Riattiva serie archiviata' : 'Archivia serie'}</button></div></li>`).join('')}</ul>
+      <ul class="income-list">${incomeItems.map(o => `<li><span><strong>${escapeHtml(o.name)}</strong><small>Scadenza: ${escapeHtml(formatDate(o.dueDate))} · Data prevista di incasso: ${o.cashDate ? escapeHtml(formatDate(o.cashDate)) : 'non nota'} · ${formatAmount(o.amountCents)}${o.archived ? ' · Serie archiviata' : ''} · ${o.actual ? `Incassato ${formatAmount(o.actual.amountCents)} il ${escapeHtml(formatDate(o.actual.date))}` : 'Previsto, non incassato'}</small></span><div class="toolbar"><button class="text-button" type="button" data-action="actual-income" data-id="${escapeHtml(o.id)}">${o.actual ? 'Correggi incasso' : 'Registra incasso'}</button>${o.actual ? `<button class="text-button" type="button" data-action="undo-income" data-id="${escapeHtml(o.id)}">Annulla incasso</button>` : `<button class="text-button" type="button" data-action="edit-income" data-id="${escapeHtml(o.id)}">Modifica singola</button>`}<button class="text-button" type="button" data-action="${o.archived ? 'restore-income' : 'remove-income'}" data-id="${escapeHtml(o.seriesId)}">${o.archived ? 'Riattiva serie archiviata' : 'Archivia serie'}</button></div></li>`).join('')}</ul>
     </section>
     <div id="planning-results" tabindex="-1">${renderTrend(radar)}</div>
     ${projection ? `<section class="planning-results">
@@ -1158,8 +1171,8 @@ function openMovement(id, income = false, forecast = false) {
   form.dataset.forecast = String(forecast);
   form.reset();
   document.querySelector('#movement-title').textContent = forecast ? 'Modifica singola previsione' : income ? 'Incasso effettivo totale' : 'Pagamento effettivo totale';
-  document.querySelector('#movement-description').textContent = `${o.title ?? o.name} · Occorrenza ${o.key}. ${forecast ? 'Le successive restano invariate.' : 'Sostituisce la previsione collegata, non crea un secondo movimento. Correggi qui data e importo; annulla dall’elenco per riaprire.'}`;
-  document.querySelector('#movement-date-label').textContent = forecast ? 'Nuova data prevista di cassa' : 'Data effettiva (obbligatoria, non futura)';
+  document.querySelector('#movement-description').textContent = `${o.title ?? o.name} · Occorrenza ${formatDate(o.key)}. ${forecast ? 'Le successive restano invariate.' : 'Sostituisce la previsione collegata, non crea un secondo movimento. Correggi qui data e importo; annulla dall’elenco per riaprire.'}`;
+  document.querySelector('#movement-date-label').textContent = forecast ? expectedDateLabel(income, o.amountCents) : 'Data effettiva (obbligatoria, non futura)';
   const date = document.querySelector('#movement-date');
   date.value = forecast ? o.cashDate ?? '' : o.actual?.date ?? '';
   if (forecast) date.removeAttribute('max'); else date.max = todayIso();
@@ -1429,7 +1442,7 @@ function handleClick(event) {
       calendarOpen = true;
       render();
       document.querySelector(`[data-action="select-calendar-date"][data-date="${selectedCalendarDate}"]`)?.focus();
-      showToast(`Giorno selezionato: ${selectedCalendarDate}.`);
+      showToast(`Giorno selezionato: ${formatDate(selectedCalendarDate)}.`);
       break;
     case 'calendar-month':
       calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + Number(button.dataset.offset), 1);

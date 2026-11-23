@@ -1,0 +1,57 @@
+{
+  "format": "scadenzario-cli-date-delta/1",
+  "base": "working/scadenzario-rifinitura-35805df/project",
+  "base_branch": "rifinitura-home-35805df",
+  "base_includes_uncommitted_refinement": true,
+  "archive_paths": [
+    "docs/CORREZIONE_TEST_CLI_DATE.md",
+    "docs/CORREZIONE_TEST_CLI_DATE_MANIFEST.json",
+    "scripts/ingest-manual-args.mjs",
+    "scripts/ingest-manual.mjs",
+    "test/real-measures/cli-args.test.mjs",
+    "test/real-measures/real-measures.test.mjs"
+  ],
+  "integrity": "SHA-256 and CRC32 cover the five content files. Manifest self-hash excluded; ZIP entry CRC32 covers it.",
+  "files": [
+    {
+      "path": "scripts/ingest-manual.mjs",
+      "change": "modified",
+      "size": 4169,
+      "sha256": "a691b3120d66eaef3a295a69b8bf13be6b61138ab37abb98fa8806d9ea285300",
+      "crc32": "ce12195c",
+      "base_sha256": "1b253a39fa5878a778e81c2ba8508d7f31795df4bca73d57b50ac42fd6daf260"
+    },
+    {
+      "path": "scripts/ingest-manual-args.mjs",
+      "change": "added",
+      "size": 1186,
+      "sha256": "1bdcf44a46c562f216295a661830f597f532cd4f9908c3c4b39e523afc349ff6",
+      "crc32": "78faa38e",
+      "base_sha256": null
+    },
+    {
+      "path": "test/real-measures/real-measures.test.mjs",
+      "change": "modified",
+      "size": 10439,
+      "sha256": "29c17d97db1f5761c4eaedd9f570eeab881622a27120defb0b1de81c70d565e6",
+      "crc32": "f9239767",
+      "base_sha256": "8a2e8d76441d4cc2bb2c484c2249ffbcb913394f8946f9593f7b5cb6d8b41f37"
+    },
+    {
+      "path": "test/real-measures/cli-args.test.mjs",
+      "change": "added",
+      "size": 3687,
+      "sha256": "8ee21d3028e057d5ed89a023fbc6f206b6872af36c9b5d0f357e961e0bb377d4",
+      "crc32": "4af858bb",
+      "base_sha256": null
+    },
+    {
+      "path": "docs/CORREZIONE_TEST_CLI_DATE.md",
+      "change": "added",
+      "size": 4242,
+      "sha256": "efcf522843eab18bec80f7f756d0a39d2096451383055f06d1a6f54ea89f1693",
+      "crc32": "fdf49614",
+      "base_sha256": null
+    }
+  ]
+}

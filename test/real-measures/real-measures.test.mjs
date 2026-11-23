@@ -38,11 +38,12 @@ function createCandidate(file, raw = file.records[0].raw, existingMeasures = [])
   });
 }
 
-function runCli(fixturePath) {
+function runCli(fixturePath, asOf = NOW) {
   return spawnSync(process.execPath, [
     '--experimental-strip-types',
     path.join(ROOT, 'scripts/ingest-manual.mjs'),
     path.join(ROOT, fixturePath),
+    ...(asOf === null ? [] : ['--as-of', asOf.toISOString()]),
   ], {
     cwd: ROOT,
     encoding: 'utf8',
@@ -170,11 +171,43 @@ test('stesso fingerprint con contenuto diverso viene segnalato come conflitto', 
   assert.equal(changed.approvable, false);
 });
 
-test('il CLI importa senza DATABASE_URL e non richiede un database', () => {
+test('il CLI importa alla data fissa senza DATABASE_URL e non richiede un database', () => {
   const result = runCli(FIXTURES.nidi);
   assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.includes(`DATA DI RIFERIMENTO\n${NOW.toISOString()}`));
+  assert.match(result.stderr, /CONTESTO STORICO NON VERIFICATO/);
+  assert.match(result.stderr, /WARNING:/);
   assert.match(result.stdout, /RECORD TYPE\nREAL/);
+  assert.match(result.stdout, /DATA QUALITY\nTO_VERIFY/);
   assert.match(result.stdout, /REVIEW\nNEEDS_REVIEW/);
+  assert.doesNotMatch(result.stdout, /REVIEW\nAPPROVED|DATA QUALITY\nVERIFIED/);
+});
+
+test('il CLI alla data successiva alla scadenza rifiuta OPEN con exit 1', () => {
+  const result = runCli(FIXTURES.nidi, new Date('2026-11-19T11:00:00.001Z'));
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stdout, /INGESTION\nFAILED/);
+  assert.match(result.stdout, /ERROR status: Lo stato OPEN non è compatibile/);
+  assert.match(result.stdout, /APPROVABLE\nNO/);
+  assert.match(result.stdout, /DATA QUALITY\nTO_VERIFY/);
+  assert.match(result.stderr, /CONTESTO STORICO NON VERIFICATO/);
+});
+
+test('il CLI senza --as-of usa realmente l’orologio corrente e il validator', async () => {
+  const payload = await loadFixture('nidi');
+  const before = Date.now();
+  const result = runCli(FIXTURES.nidi, null);
+  const after = Date.now();
+  const reference = result.stdout.match(/DATA DI RIFERIMENTO\n([^\n]+)/);
+  assert.ok(reference, result.stderr);
+  const actualTime = new Date(reference[1]);
+  assert.ok(actualTime.getTime() >= before && actualTime.getTime() <= after);
+  const expected = ingestManualRecords(payload, { now: () => actualTime }).result;
+  assert.equal(result.status, ['FAILED', 'BLOCKED'].includes(expected.status) ? 1 : 0, result.stderr);
+  assert.ok(result.stdout.includes(`INGESTION\n${expected.status}`));
+  assert.match(result.stdout, /CONTESTO\nOROLOGIO CORRENTE/);
+  assert.doesNotMatch(result.stderr, /CONTESTO STORICO NON VERIFICATO/);
+  for (const error of expected.errors) assert.ok(result.stderr.includes(`ERROR: ${error}`));
 });
 
 test('il CLI non modifica il catalogo SAMPLE', async () => {

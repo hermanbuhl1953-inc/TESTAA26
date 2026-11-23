@@ -79,7 +79,7 @@ test('Home: dati presenti usa messaggio condizionale e non afferma completezza',
 test('Home: prima futura della serie non nascosta da occorrenza arretrata', () => {
   const h = harness(readyState([{ ...deadline, dueDate: '2026-11-01', recurrenceMonths: 1, count: 3 }]));
   const list = h.api.renderHome().split('<h2>Prossime scadenze</h2>')[1];
-  assert.match(list, /Scadenza: 2026-12-01/);
+  assert.match(list, /Scadenza: 1 dic 2026/);
 });
 test('Radar DOM: pagamento risolve e annullamento riapre senza cancellare serie', () => {
   const h = harness(readyState());
@@ -104,7 +104,7 @@ test('Radar DOM: entrata con scadenza futura cassa passata, aggiorna previsione 
   assert.doesNotMatch(h.api.renderRadar(), /Registra incasso/);
   assert.equal(h.api.state.planner.incomes[0].dueDate, '2026-12-01');
   assert.equal(h.api.findOccurrence('income@2026-12-01', true).cashDate, '2026-11-25');
-  assert.match(h.api.renderPlanning(), /Cassa prevista: 2026-11-25/);
+  assert.match(h.api.renderPlanning(), /Data prevista di incasso: 25 nov 2026/);
 });
 test('Radar DOM: incasso risolve e annullamento riapre senza doppioni', () => {
   const data = readyState([]);
@@ -158,7 +158,7 @@ test('Agenda DOM: Oggi e categoria non includono scadenze future; giorno cambia 
   assert.match(list, /<h2>Oggi<\/h2>/); assert.match(list, /Affitto/); assert.doesNotMatch(list, /Futuro soltanto|Auto soltanto/);
   h.click('select-calendar-date', null, { date: '2026-11-19' });
   list = h.api.renderCalendar().split('</details><div class="section-heading">')[1];
-  assert.match(list, /Giorno selezionato: 2026-11-19/); assert.match(list, /Futuro soltanto/); assert.doesNotMatch(list, /Affitto/);
+  assert.match(list, /Giorno selezionato: 19 nov 2026/); assert.match(list, /Futuro soltanto/); assert.doesNotMatch(list, /Affitto/);
   h.click('agenda-period', null, { period: 'upcoming' });
   list = h.api.renderCalendar().split('</details><div class="section-heading">')[1];
   assert.match(list, /Prossime \(dopo oggi\)/); assert.doesNotMatch(list, /<h2>Oggi/);
@@ -254,13 +254,13 @@ test('Home e Planning: stesso motore e periodo effettivo, no selettori periodo d
   const original = planning.project(h.api.state.planner, h.api.state.deadlines, '2026-11-18', '2027-11-01');
   assert.equal(h.api.currentRadar().projection.minimumCents, original.minimumCents);
   for (const html of [h.api.renderHome(), h.api.renderPlanning()]) {
-    assert.match(html, /2027-11-01/); assert.match(html, /400,00 €/);
+    assert.match(html, /1 nov 2027/); assert.match(html, /400,00 €/);
   }
 });
 test('PWA: nuovo modulo incluso in shell, cache, build e allowlist con percorsi relativi', async () => {
   const [html, sw, server, build, app] = await Promise.all(['index.html', 'service-worker.js', 'server.mjs', 'scripts/build-pages.mjs', 'app.js'].map(file => readFile(new URL(`../../${file}`, import.meta.url), 'utf8')));
   assert.doesNotMatch(html, /id="app"[^>]*aria-live/);
-  assert.match(sw, /scadenzario-shell-v11-cash-calendar/);
+  assert.match(sw, /scadenzario-shell-v12-home-refinement/);
   assert.match(sw, /'\.\/radar.js'/); assert.match(server, /'radar.js'/); assert.match(build, /'radar.js'/);
   assert.match(app, /from '\.\/radar.js'/);
   assert.doesNotMatch(app, /from '\/radar.js'/);
