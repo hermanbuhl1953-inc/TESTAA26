@@ -47,7 +47,7 @@ const readyState = (deadlines = [deadline]) => {
 test('Home: ordine sezioni e nessuna rassicurazione statica, massimo tre schede azione', () => {
   const data = readyState(Array.from({ length: 6 }, (_, i) => ({ ...deadline, id: `item-${i}` })));
   const h = harness(data), html = h.api.renderHome();
-  const headings = ['Da gestire', 'Attendibilità del piano', 'Andamento previsto', 'Prossime scadenze'];
+  const headings = ['Da gestire', 'Andamento previsto', 'Attendibilità del piano', 'Prossime scadenze'];
   for (let i = 1; i < headings.length; i++) assert.ok(html.indexOf(headings[i - 1]) < html.indexOf(headings[i]));
   assert.equal((html.match(/class="radar-card"/g) ?? []).length, 3);
   assert.equal((h.api.renderRadar().match(/class="radar-card"/g) ?? []).length, 6);
