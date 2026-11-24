@@ -1,23 +1,23 @@
 // Generato da build-shell: cache sigillata, mai aggiornata asset per asset.
 const RELEASE = {
-  "shell": "e13c95dea2502144451d",
-  "runtime": "./assets/shell/runtime-7192550ad3fe91619c8e.js",
+  "shell": "b0e3eb04ac2049e90dcc",
+  "runtime": "./assets/shell/runtime-e95aa8f96e3199307eac.js",
   "files": [
     {
       "path": "./index.html",
-      "sha256": "f31accd86b522533e14c456627d1c5e5d29f4236cfc1a13e5f522a4bd440b669"
+      "sha256": "65c0d4aeb55b408c81a0aef45c7c49e3c3f6b04c89c6ab144f166b92d7cceb49"
     },
     {
       "path": "./app.js",
-      "sha256": "7192550ad3fe91619c8ef8869580b1cc530bf640b04b026a0ffafea3c12ba39a"
+      "sha256": "e95aa8f96e3199307eac289429d9f4dd9da63f19d1840972bcce091ed5668d23"
     },
     {
-      "path": "./assets/shell/runtime-7192550ad3fe91619c8e.js",
-      "sha256": "7192550ad3fe91619c8ef8869580b1cc530bf640b04b026a0ffafea3c12ba39a"
+      "path": "./assets/shell/runtime-e95aa8f96e3199307eac.js",
+      "sha256": "e95aa8f96e3199307eac289429d9f4dd9da63f19d1840972bcce091ed5668d23"
     },
     {
       "path": "./styles.css",
-      "sha256": "07279bee2eb9e1c8f98e2b19761e19f6a791c573126b7ffd96751e2e3384887d"
+      "sha256": "289f4952915803db01d62ae56b1ccd639320143466340f6b259b6585ecfb8257"
     },
     {
       "path": "./planning.js",
@@ -41,7 +41,7 @@ const RELEASE = {
     },
     {
       "path": "./assets/catalog/source-monitoring.json",
-      "sha256": "072e18fe68d617f62e128226172f8a9e89576383d1313867431f4aec87f26171"
+      "sha256": "9a276104a63a03b97de23093c7fdacf94d4bd1aad9529f73432be5f6e1fecea0"
     },
     {
       "path": "./icons/icon.svg",
@@ -56,7 +56,7 @@ const RELEASE = {
       "sha256": "30998c80710334d4df0b51cc8f707ccbb638d9bf5a65ca87477414978fcf2b9a"
     }
   ],
-  "id": "722d77d1904d0dee1e0c"
+  "id": "c0306e2db13beca4cd2b"
 };
 const CACHE_NAME = `scadenzario-shell-v15-${RELEASE.id}`;
 const marker = new URL('./.shell-complete', self.registration.scope).href;
