@@ -1,6 +1,20 @@
 import { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport, updateSeries, setOccurrenceCancelled, getOccurrence } from './planning.js';
 import { buildRadar, filterAgenda, planningEnd } from './radar.js';
 
+// The legacy shell bootstrap replaces the body, not head metadata.
+function syncThemeColorMetadata() {
+  if (!document.head) return;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.remove());
+  for (const [scheme, content] of [['light', '#f6f5f1'], ['dark', '#0d1620']]) {
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.media = `(prefers-color-scheme: ${scheme})`;
+    meta.content = content;
+    document.head.append(meta);
+  }
+}
+syncThemeColorMetadata();
+
 const STORAGE_KEY = 'scadenzario.pwa.v3';
 const LEGACY_STORAGE_KEY = 'scadenzario.pwa.v1';
 const STORAGE_LOCK = 'scadenzario.pwa.v3.writer';
