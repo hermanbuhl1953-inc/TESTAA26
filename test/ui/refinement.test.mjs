@@ -22,7 +22,7 @@ test('Home compatta: griglia adattiva locale, colonna mobile e nessun clipping i
 test('Home: ordine e tre priorità, Radar completo e avvisi non ridotti a rassicurazione', () => {
   const h = harness(readyState(Array.from({ length: 6 }, (_, i) => ({ ...deadline, id: `row-${i}` }))));
   const html = h.api.renderHome();
-  const headings = ['Da gestire', 'Attendibilità del piano', 'Andamento previsto', 'Prossime scadenze'];
+  const headings = ['Da gestire', 'Andamento previsto', 'Attendibilità del piano', 'Prossime scadenze'];
   for (let i = 1; i < headings.length; i++) assert.ok(html.indexOf(headings[i - 1]) < html.indexOf(headings[i]));
   assert.equal((html.match(/class="radar-card"/g) ?? []).length, 3);
   assert.equal((h.api.renderRadar().match(/class="radar-card"/g) ?? []).length, 6);
