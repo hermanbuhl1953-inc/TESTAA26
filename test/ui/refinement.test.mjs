@@ -14,8 +14,9 @@ test('Home compatta: griglia adattiva locale, colonna mobile e nessun clipping i
     assert.doesNotMatch(rule[2], /(?:^|;)\s*(?:max-)?height\s*:|overflow\s*:\s*hidden|line-clamp|display\s*:\s*none/);
   }
   assert.match(css, /\.button, \.select-control \{ min-height: 44px/);
-  assert.match(css, /:focus-visible \{ outline: 3px solid var\(--navy\)/);
-  assert.match(css, /--page-warm: #f5f4f0; --ink: #0a2540/);
+  assert.match(css, /:focus-visible \{ outline: 3px solid var\(--focus\)/);
+  assert.match(css, /--page-warm: #f6f5f1/);
+  assert.match(css, /--ink: #0f2740/);
 });
 
 test('Home: ordine e tre priorità, Radar completo e avvisi non ridotti a rassicurazione', () => {

@@ -1,31 +1,31 @@
 // Generato da build-shell: cache sigillata, mai aggiornata asset per asset.
 const RELEASE = {
-  "shell": "134c5bcbf87f01ae127d",
-  "runtime": "./assets/shell/runtime-8f54c4eda5aa07cd20a1.js",
+  "shell": "48c9a92f9b5b5f11aa59",
+  "runtime": "./assets/shell/runtime-eee3d7119b22c5aeceeb.js",
   "files": [
     {
       "path": "./index.html",
-      "sha256": "abb06a079d5cb1d5ca8c809c5e7749e998593d2657dc8df1e0665b4212b71d7a"
+      "sha256": "c7740699c603863c917b2d060de54d1cc8ab10383d3dfece0532a9c7af11d2cb"
     },
     {
       "path": "./app.js",
-      "sha256": "8f54c4eda5aa07cd20a156775effe4db826b9c2a94d6dd5499e9e46416045fd2"
+      "sha256": "eee3d7119b22c5aeceeb4bd98bf2f7772f1d0b1ce9f7736e1d17fea97d271c63"
     },
     {
-      "path": "./assets/shell/runtime-8f54c4eda5aa07cd20a1.js",
-      "sha256": "8f54c4eda5aa07cd20a156775effe4db826b9c2a94d6dd5499e9e46416045fd2"
+      "path": "./assets/shell/runtime-eee3d7119b22c5aeceeb.js",
+      "sha256": "eee3d7119b22c5aeceeb4bd98bf2f7772f1d0b1ce9f7736e1d17fea97d271c63"
     },
     {
       "path": "./styles.css",
-      "sha256": "3fd1f8e114427b72e8630c61f772fa688ace2120fdbe8b75f04f10b3d4861c9e"
+      "sha256": "9f13262eddecfd0735f27af2a7ee51bb03b573dbb698ebceadac05b8ef250b34"
     },
     {
       "path": "./planning.js",
-      "sha256": "2f304f5c75bf1a28c2e831488200fd1134ae150bb146b8532e53eac42a27b542"
+      "sha256": "65c82537a5682ab894bf0ce2e6467e0dc645458081482a62b1eafa468dae9953"
     },
     {
       "path": "./radar.js",
-      "sha256": "82d6cbfa5263cfb88bb113cf09595058f0703cef1fae3196ce68acf9a2f3f139"
+      "sha256": "90fcfb94149b669e89527d9c724b4163803f9d7bd1d88381e28254cba378636b"
     },
     {
       "path": "./manifest.webmanifest",
@@ -41,7 +41,7 @@ const RELEASE = {
     },
     {
       "path": "./assets/catalog/source-monitoring.json",
-      "sha256": "65636bf11cfe3a72d06c0eaeb03154778478c823d7a67e24a6bf34516c49946a"
+      "sha256": "c9b7b6547935dcea821fc826799f0ff9601d542cce970ad1819b58c5b6f4d25e"
     },
     {
       "path": "./icons/icon.svg",
@@ -56,7 +56,7 @@ const RELEASE = {
       "sha256": "30998c80710334d4df0b51cc8f707ccbb638d9bf5a65ca87477414978fcf2b9a"
     }
   ],
-  "id": "c1699f5bf474698bfc90"
+  "id": "50828c85c282aecb2623"
 };
 const CACHE_NAME = `scadenzario-shell-v15-${RELEASE.id}`;
 const marker = new URL('./.shell-complete', self.registration.scope).href;
