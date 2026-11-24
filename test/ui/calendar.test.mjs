@@ -54,7 +54,8 @@ test('Calendario: inclusione tutti o nessuno degli effettivi nella data saldo re
     data.planner.sameDayActualsIncluded = included;
     const h = harness(data), radar = h.api.currentRadar();
     const day = h.api.getCalendarCashDays(radar.projection, radar.end, '2026-11-01', '2026-11-01').get('2026-11-01');
-    assert.equal(day.expenseActualCents, included ? 0 : 10000);
+    // Il reporting mostra anche gli effettivi assorbiti; il saldo resta invariato.
+    assert.equal(day.expenseActualCents, 10000);
     assert.equal(day.closingBalanceCents, included ? 50000 : 40000);
   }
 });

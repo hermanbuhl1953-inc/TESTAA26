@@ -34,7 +34,7 @@
       <input id="deadline-catalog-id" type="hidden">
       <label class="field">
         <span>Titolo</span>
-        <input id="deadline-title" name="title" maxlength="100" required placeholder="Es. Assicurazione auto">
+        <input autofocus id="deadline-title" name="title" maxlength="100" required placeholder="Es. Assicurazione auto">
       </label>
       <div class="field-row">
         <label class="field">
@@ -78,11 +78,13 @@
       <p id="occurrence-edit-note" class="page-description" hidden>Modifica soltanto questa occorrenza: titolo, categoria, note, promemoria, data scadenza, cassa e importo. L’ancora e le successive non cambiano. Modifiche «questa e successive» non disponibili in questa fase.</p>
       <div class="field-row">
         <label class="field"><span>Data prevista di pagamento o del promemoria</span><select id="deadline-cash-mode"><option value="unknown">Non ancora nota (avvisa)</option><option value="same">Stessa data della scadenza (scelta esplicita)</option><option value="date">Altra data</option></select></label>
-        <label class="field"><span>Data prevista (se diversa dalla scadenza)</span><input id="deadline-cash-date" type="date"></label>
+        <label class="field" id="deadline-cash-field" hidden><span>Data prevista (se diversa dalla scadenza)</span><input id="deadline-cash-date" type="date" disabled></label>
       </div>
+      <p id="legacy-end-note" class="notice" hidden>Modalità legacy: la serie conserva due limiti; vale la regola precedente più restrittiva (data e numero). Modificare questa singola occorrenza non cambia i termini della serie.</p>
       <div class="field-row" id="series-end-fields">
-        <label class="field"><span>Termine ricorrenza: data inclusa (facoltativo)</span><input id="deadline-end" type="date"></label>
-        <label class="field"><span>Numero totale occorrenze (facoltativo, max 1200)</span><input id="deadline-count" type="number" min="1" max="1200" step="1"></label>
+        <label class="field"><span>Termine ricorrenza</span><select id="deadline-end-mode"><option value="none">Senza termine</option><option value="date">Fino a una data</option><option value="count">Dopo N occorrenze</option><option value="legacy" disabled hidden>Legacy: entrambi i limiti</option></select></label>
+        <label class="field" id="deadline-end-field" hidden><span>Ultima data inclusa</span><input id="deadline-end" type="date" disabled></label>
+        <label class="field" id="deadline-count-field" hidden><span>Numero totale occorrenze (max 1200)</span><input id="deadline-count" type="number" min="1" max="1200" step="1" disabled></label>
       </div>
       <label class="field">
         <span>Note (facoltative)</span>
@@ -134,8 +136,9 @@
     <form id="movement-form" class="dialog-form">
       <div class="dialog-heading"><h2 id="movement-title">Movimento</h2><button class="icon-button" type="button" data-close-dialog aria-label="Chiudi">×</button></div>
       <p id="movement-description" class="page-description"></p>
-      <label class="field"><span id="movement-date-label">Data effettiva</span><input id="movement-date" type="date" required></label>
-      <label class="field"><span>Importo totale (€)</span><input id="movement-amount" inputmode="decimal" required></label>
+      <label class="field"><span>Importo totale (€)</span><input id="movement-amount" inputmode="decimal" required autofocus></label>
+      <label class="field" id="movement-cash-mode-field" hidden><span>Data prevista di incasso</span><select id="movement-cash-mode"><option value="same">Stessa data della scadenza</option><option value="date">Altra data</option><option value="unknown">Non ancora nota</option></select></label>
+      <label class="field" id="movement-cash-field"><span id="movement-date-label">Data effettiva</span><input id="movement-date" type="date" required></label>
       <p class="form-error" id="movement-error" role="alert"></p>
       <div class="dialog-actions"><button class="button button-quiet" type="button" data-close-dialog>Annulla</button><button class="button button-primary" type="submit">Conferma e salva</button></div>
     </form>
