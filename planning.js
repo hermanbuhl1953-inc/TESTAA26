@@ -170,6 +170,34 @@ export function project(planner, deadlines, today, endDate) {
   }
   return { rows, months, warnings, endingBalanceCents: balance, minimumCents: minimum, minimumDate, firstCriticalDate, marginCents: minimum - planner.reserveCents, deficitCents: Math.max(0, -minimum) };
 }
+// Reporting per data di cassa: non ricostruisce saldi e non modifica la proiezione.
+export function cashReport(planner, deadlines, fromDate, toDate, today) {
+  validatePlanner(planner, today);
+  deadlines.forEach(validateSeries);
+  assert(validDate(fromDate) && validDate(toDate) && fromDate <= toDate && validDate(today), 'Intervallo report non valido.');
+  const rows = [];
+  let unplacedLegacy = 0, missingAmount = 0, unknownDate = 0;
+  const all = [...occurrences(deadlines, toDate).map(o => ({ ...o, sign: -1 })), ...occurrences(planner.incomes, toDate).map(o => ({ ...o, sign: 1 }))];
+  for (const o of all) {
+    if (o.actual) assert(o.actual.date <= today, 'Un effettivo non può avere data futura.');
+    if (!o.actual && o.legacyCompleted) { unplacedLegacy += 1; continue; }
+    if (!o.actual && (o.done || o.archived)) continue;
+    const date = o.actual ? o.actual.date : o.cashDate;
+    if (!date) { unknownDate += 1; continue; }
+    if (date < fromDate || date > toDate) continue;
+    const amount = o.actual ? o.actual.amountCents : o.amountCents;
+    if (!amount) { missingAmount += 1; continue; }
+    rows.push({ id: o.id, date, label: `${o.title ?? o.name} (${o.key})`, amountCents: o.sign * amount, actual: Boolean(o.actual) });
+  }
+  rows.sort((a, b) => a.date.localeCompare(b.date) || a.amountCents - b.amountCents);
+  const totals = { incomeActualCents: 0, expenseActualCents: 0, incomeForecastCents: 0, expenseForecastCents: 0 };
+  for (const row of rows) {
+    const field = `${row.amountCents > 0 ? 'income' : 'expense'}${row.actual ? 'Actual' : 'Forecast'}Cents`;
+    totals[field] += Math.abs(row.amountCents);
+    assert(Number.isSafeInteger(totals[field]), 'Totale oltre la precisione disponibile.');
+  }
+  return { ...totals, rows, unplacedLegacy, missingAmount, unknownDate };
+}
 export function setOccurrenceActual(series, key, actual, today) {
   assert(isOccurrenceDate(series, key), 'Occorrenza non trovata.');
   assert(actual === null || validDate(actual.date) && actual.date <= today && money(actual.amountCents) && actual.amountCents > 0, 'Effettivo: data non futura e importo positivo obbligatori.');

@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import * as planning from '../../planning.js';
 import * as radar from '../../radar.js';
 
-const source = (await readFile(new URL('../../app.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
+const source = (await readFile(new URL('../../app.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
 const key = 'scadenzario.pwa.v1';
 function harness(saved = null) {
   const nodes = new Map();
@@ -145,7 +145,7 @@ test('integrazione: promemoria senza importo si completa e riapre senza inventar
 test('integrazione: shell, build statica e server includono il modulo finanziario', async () => {
   const [html, sw, server, build] = await Promise.all(['index.html', 'service-worker.js', 'server.mjs', 'scripts/build-pages.mjs'].map(file => readFile(new URL(`../../${file}`, import.meta.url), 'utf8')));
   assert.match(html, /src="\.\/app.js" type="module"/);
-  assert.match(sw, /'\.\/planning.js'/); assert.match(sw, /scadenzario-shell-v12-home-refinement/);
+  assert.match(sw, /'\.\/planning.js'/); assert.match(sw, /scadenzario-shell-v13-cash-report/);
   assert.match(server, /'planning.js'/); assert.match(build, /'planning.js'/);
 });
 test('integrazione: home conserva scadenza oltre orizzonte e archivio si riattiva', () => {

@@ -1,0 +1,149 @@
+VERIFICA CASSA E TERMINI RICORRENZE — PRIMA TRANCHE — 24 novembre 2026
+
+BASE E ISOLAMENTO
+Base effettiva: /mnt/workspace/working/scadenzario-fix-cli-date/project
+Progetto modificato: /mnt/workspace/working/scadenzario-cassa-ricorrenze/project
+Origine: ultima nostra rifinitura 35805df + fix CLI --as-of.
+Confrontati gli overlay originali rifinitura-home-base-35805df e
+correzione-test-cli-date: CRC integri, tutti i file confrontati coincidono
+con la base disponibile. Nessuna ricostruzione necessaria.
+TESTAA26-main (4).zip SHA-256:
+399b97b7abd89bc3b057ff3f5aa205abe869298b56e055b85e761cfbe14a2516
+Non sono stati verificati main remoto, git ancestry o hash del merge
+c45b59b/PR #3 citato dall'utente. Nessun accesso remoto, commit o push.
+Input, output e basi precedenti lasciati intatti. Nessuna installazione,
+chiamata web, credenziale o avvio del backend/monitor. Memoria di progetto
+assente nel contesto disponibile: non utilizzata e non bloccante.
+
+IMPLEMENTAZIONE
+- Consuntivo derivato per actual.date con entrate/uscite effettive distinte
+  dalle previsioni aperte per data cassa. Archivio ed effettivi di scadenze
+  fuori finestra inclusi; previsione collegata mai contata due volte.
+- Mese corrente in Planning; qualsiasi mese, anche passato, nel calendario
+  Flussi di cassa usando i controlli mese esistenti. Report sul mese intero.
+- Tabella proiezione etichettata come movimenti applicati, non consuntivo.
+- Effettivi prima saldo e nella data saldo già inclusa visibili; prima
+  saldo o senza saldo pronto importi presenti, saldi/minimi null e nessun
+  saldo storico inventato. Da saldo in avanti stesso motore e stessi minimi.
+- Reporting esplicito su legacy, dati parziali ed errori, niente importi di
+  movimento fittizi a zero. Previsioni arretrate nel report mensile, non
+  applicate automaticamente alla proiezione o alle righe giornaliere.
+- Focus titolo in nuova/modifica scadenza, importo nelle modali movimento.
+  Nessun showPicker automatico; modifica titolo/importo non cambia le date.
+- Altra data condizionale: wrapper con label hidden, input disabled e non
+  required per same/unknown, cashDate salvato null; date visibile/required
+  solo se scelta. Nuova scelta distinta vuota, draft esplicito recuperabile.
+- Termini esclusivi solo nuove scadenze e nuove entrate. Nessun endMode
+  persistente, schema v2 invariato. Vecchie serie dual-limit preservate,
+  banner legacy e regola min originale; modifica singola non tocca origine.
+- Nessuna modifica di asset, layout, dipendenze o cataloghi. Cache v13.
+
+RIMANDATO, NON IMPLEMENTATO
+Esclusioni mesi, primo mercoledi e altre ricorrenze avanzate, modifica serie
+intera/questa e successive, cancellazioni/versionamento. Solo termine
+esclusivo nelle nuove serie; nessuna conversione silenziosa del vecchio v2.
+
+ELENCO ESATTO FILE DEL DELTA (12)
+Modificati (8):
+app.js
+index.html
+planning.js
+service-worker.js
+test/planning/app-integration.test.mjs
+test/radar/app-integration.test.mjs
+test/ui/calendar.test.mjs
+test/ui/harness.mjs
+Nuovi (4):
+docs/CORREZIONI_CASSA_RICORRENZE.md
+VERIFICA_CASSA_RICORRENZE.txt
+test/planning/cash-report.test.mjs
+test/ui/cash-forms.test.mjs
+Nessuna cancellazione richiesta o contenuta nel pacchetto.
+
+BASELINE ESEGUITA PRIMA DELLE MODIFICHE, Node v24.22.1
+npm run test:planning: 55/55 pass, 0 fail, 0 skip.
+npm run test:radar: 42/42 pass, 0 fail, 0 skip.
+npm run test:ui: 20/20 pass, 0 fail, 0 skip.
+Totale frontend precedente: 117 test distinti.
+test:all tentato prima e dopo: NON superato, dipendenza zod assente.
+Il runner riporta 5 test CLI pass e 5 file test non caricati; non equivale a
+67 test eseguiti. Nessuna installazione consentita/eseguita. I 67 test
+completi non sono verificati in questo ambiente. Non dichiarati superati.
+
+REGRESSIONE FINALE ESEGUITA
+npm run test:planning: 62/62 pass, 0 fail, 0 skip.
+npm run test:radar: 42/42 pass, 0 fail, 0 skip.
+npm run test:ui: 33/33 pass, 0 fail, 0 skip.
+Totale frontend: 137 test distinti, inclusi 20 nuovi (7 puri, 13 UI).
+node --test test/real-measures/cli-args.test.mjs: 5/5 pass, 0 fail, 0 skip.
+Frontend + parser CLI: 142 distinti. Nessuna modifica alla CLI o fixture REAL.
+
+Ripetuti in UTC, Europe/Rome e America/New_York:
+node --test test/planning/cash-report.test.mjs test/ui/calendar.test.mjs
+            test/ui/cash-forms.test.mjs
+30/30 pass in ciascun fuso (90 esecuzioni, non 90 nuovi test distinti).
+Date civili, DST, passaggio anno e input ISO preservati.
+
+node --check superato sui 12 file controllati:
+app.js, planning.js, radar.js, service-worker.js, server.mjs,
+scripts/build-pages.mjs, test/planning/app-integration.test.mjs,
+test/planning/cash-report.test.mjs, test/radar/app-integration.test.mjs,
+test/ui/harness.mjs, test/ui/calendar.test.mjs, test/ui/cash-forms.test.mjs.
+node scripts/build-pages.mjs: riuscita; i 7 file pubblici singoli generati
+corrispondono byte per byte ai sorgenti. Backend non incluso. Build fuori ZIP.
+Nessun browser disponibile: nessuna QA visuale Windows/mobile o verifica del
+picker nativo dichiarata. I test UI sono integrazione VM con DOM minimo.
+
+COPERTURA NUOVA E INVARIANTI
+- Ottobre pagato novembre: saldo prima/dopo/stesso giorno incluso/escluso;
+  stesso consuntivo, saldo scalato solo quando dovuto, centesimi esatti.
+- Correzione e annullamento actual, entrate, archiviate, scadenze oltre
+  finestra, passaggio anno, previsioni aperte arretrate distinte dal saldo.
+- Storico pre-saldo con importi e null per saldi/minimi, saldo mancante,
+  dati legacy non ricostruiti, correzione via modale e assenza doppioni.
+- Focus non data, nessuna mutazione scadenza/actual modificando titolo o
+  importo; label accessibili, transizioni hidden/disabled/required, draft,
+  data distinta vuota, null serializzato nelle altre due modalita.
+- Nuovi termini esclusivi, campi richiesti, nessun endMode persistito;
+  dual-limit v2 importato e modificato come singola preserva entrambi,
+  regola min e identificativi originari.
+- XSS su storico/attributi, errori report espliciti, nessuna riga a zero per
+  importi mancanti, input ISO, non mutazione stato/storage/proiezione.
+- Test prestazioni precedenti su 1200 etichette Radar passati. radar.js
+  byte-identico, nessuna nuova rigenerazione per etichetta. Il reporting
+  aggiunge generazioni interne per riepilogo/intervallo, non per etichetta;
+  i vecchi contatori app-level non misurano le chiamate interne del motore.
+
+Asserzioni precedenti non indebolite: unica attesa finanziaria UI aggiornata
+in calendar.test.mjs: gli importi effettivi della data saldo sono visibili
+anche quando inclusi, ma l'asserzione sul saldo incluso/escluso e invariata.
+Negli harness soltanto binding cashReport e cache v13. planning.test.mjs,
+radar.test.mjs e refinement.test.mjs invariati. Importi, saldi, minimi,
+backup/storage, controlli balanceDate ready=false e asserzioni XSS originali
+continuano a passare. Funzioni originali di planning.js byte-identiche:
+verificato rimuovendo solo il nuovo blocco reporting e confrontando l'intero
+file con la base. radar.js, backend, src, lib, CLI, assets e fixture invariati.
+
+test/ui/harness.mjs: normalizzata la singola riga vuota EOF della base,
+come gia indicato dall'utente per e1b8df3; nessuna differenza di codice viene
+nascosta. Manifest contiene hash raw e normalizzati LF, con sola rimozione
+di un newline finale aggiuntivo per quel file. Niente nuovi blank EOF o
+trailing whitespace nelle righe aggiunte.
+
+PACCHETTO E APPLICAZIONE
+ZIP delta senza wrapper, esattamente i 12 file elencati, no node_modules,
+site/dist, log/output test, segreti, backup personali o file di backend.
+CRC verificato e contenuti confrontati con il progetto sorgente modificato.
+Applicazione verificata anche su copia pulita della base con riga EOF
+harness normalizzata come nel main utente; 137 frontend + 5 CLI passati
+dalla copia ricomposta dallo ZIP. File non toccati byte-identici alla base.
+SHA-256 dello ZIP nel sibling .sha256; manifest JSON sibling con hash base e
+risultato di ogni file. Non sono una prova di allineamento del main privato.
+
+Prima applicazione Windows: seguire docs/CORREZIONI_CASSA_RICORRENZE.md,
+un passaggio alla volta. Main pulito, confronto hash obbligatorio, poi nuovo
+branch correzioni-cassa-ricorrenze. Se i file main differiscono oltre la
+normalizzazione nota, STOP e nuova ZIP main per confronto mirato. Nessun
+copy/reset distruttivo o overwrite indiscriminato. Primo controllo manuale:
+ottobre pagato novembre con saldo successivo; consuntivo presente, nessun
+saldo storico o seconda sottrazione. Gli altri controlli vengono dopo.

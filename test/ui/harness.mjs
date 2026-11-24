@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import * as planning from '../../planning.js';
 import * as radar from '../../radar.js';
 
-const source = (await readFile(process.env.SCADENZARIO_TEST_APP ?? new URL('../../app.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
+const source = (await readFile(process.env.SCADENZARIO_TEST_APP ?? new URL('../../app.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
 const key = 'scadenzario.pwa.v1';
 export function harness(saved = null) {
   const nodes = new Map();
