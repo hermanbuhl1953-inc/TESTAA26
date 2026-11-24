@@ -6,8 +6,9 @@ import vm from 'node:vm';
 import * as planning from '../../planning.js';
 import * as radar from '../../radar.js';
 
-const source = (await readFile(new URL('../../app.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
-const key = 'scadenzario.pwa.v1';
+const source = (await readFile(new URL('../../app-source.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport, updateSeries, setOccurrenceCancelled, getOccurrence } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
+const key = 'scadenzario.pwa.v3';
+const legacyKey = 'scadenzario.pwa.v1';
 function harness(saved = null) {
   const nodes = new Map();
   const classes = () => ({ add() {}, remove() {}, toggle() {} });
@@ -15,14 +16,14 @@ function harness(saved = null) {
     if (!nodes.has(selector)) nodes.set(selector, { value: '', textContent: '', innerHTML: '', dataset: {}, classList: classes(), setAttribute(k, v) { this[k] = v; }, removeAttribute(k) { delete this[k]; }, append() {}, remove() {}, click() {}, addEventListener() {}, reset() {}, querySelectorAll() { return []; }, focus() {}, showModal() { this.open = true; }, close() { this.open = false; } });
     return nodes.get(selector);
   };
-  const storage = new Map(saved ? [[key, JSON.stringify(saved)]] : []);
+  const storage = new Map(saved ? [[legacyKey, JSON.stringify(saved)]] : []);
   let failStorage = false;
   let blob;
   const context = vm.createContext({
     engine: planning, radarEngine: radar,
     document: { querySelector: node, createElement: () => node(`created-${nodes.size}`), body: { append() {} }, addEventListener() {}, hidden: false },
     localStorage: { getItem: k => storage.get(k) ?? null, setItem(k, v) { if (failStorage) throw new Error('quota esaurita'); storage.set(k, v); } },
-    window: { addEventListener() {}, confirm() { return true; }, isSecureContext: false }, navigator: {},
+    window: { addEventListener() {}, confirm() { return true; }, isSecureContext: false }, navigator: { locks: { request(name, options, action) { return action(); } } },
     setTimeout() {}, clearTimeout() {}, setInterval() {}, console: { error() {} },
     Date: class extends Date { constructor(...args) { super(...(args.length ? args : ['2026-11-18T12:00:00Z'])); } }, Intl,
     fetch: async () => { throw new Error('Rete disabilitata nel test'); },
@@ -42,7 +43,7 @@ const saveBalance = h => h.submit('planner-form', { openingBalance: '1.234,50', 
 test('integrazione: saldo e riserva salvati, ricaricamento conserva importi e scelte', () => {
   const h = harness(state()); saveBalance(h);
   const saved = JSON.parse(h.storage.get(key));
-  assert.equal(saved.schemaVersion, 2); assert.equal(saved.planner.openingBalanceCents, 123450); assert.equal(saved.planner.reserveCents, 20000);
+  assert.equal(saved.schemaVersion, 3); assert.equal(saved.planner.openingBalanceCents, 123450); assert.equal(saved.planner.reserveCents, 20000);
   const reload = harness(saved); assert.equal(reload.api.state.planner.balanceDate, '2026-11-01'); assert.equal(reload.api.state.planner.sameDayActualsIncluded, true);
   assert.match(reload.api.renderPlanning(), /Minimo inframensile/);
 });
@@ -82,14 +83,14 @@ test('integrazione: modifica singola non cambia ancora, successiva o storico eff
   assert.equal(h.api.findOccurrence('x@2026-12-30').dueDate, '2026-12-30');
 });
 test('integrazione: quota storage causa rollback di saldo ed entrate', () => {
-  const h = harness(state()); h.failStorage(); saveBalance(h); assert.equal(h.api.state.planner.ready, false); assert.equal(h.storage.get(key), JSON.stringify(state()));
+  const h = harness(state()); const before = h.storage.get(key); h.failStorage(); saveBalance(h); assert.equal(h.api.state.planner.ready, false); assert.equal(h.storage.get(key), before);
   h.submit('income-form', { name: 'Entrata', amount: '10', date: '2026-12-01', months: '0' }); assert.equal(h.api.state.planner.incomes.length, 0);
 });
 test('integrazione: esportazione e ripristino JSON comprendono planning ed effettivi', async () => {
   const h = harness(state()); saveBalance(h);
   h.api.exportBackup(); const backup = JSON.parse(await h.blob().text()); assert.equal(backup.app, 'Scadenzario'); assert.equal(backup.planner.openingBalanceCents, 123450);
   const dest = harness(state()); await dest.api.restoreBackup({ size: 2000, text: async () => JSON.stringify(backup) });
-  assert.equal(dest.api.state.planner.openingBalanceCents, 123450); assert.equal(JSON.parse(dest.storage.get(key)).schemaVersion, 2);
+  assert.equal(dest.api.state.planner.openingBalanceCents, 123450); assert.equal(JSON.parse(dest.storage.get(key)).schemaVersion, 3);
 });
 test('integrazione: backup v1 migrato senza inventare cassa o effettivi', async () => {
   const h = harness(state()); const old = { app: 'Scadenzario', schemaVersion: 1, profile, deadlines: [{ ...deadline, completed: true }] };
@@ -97,7 +98,7 @@ test('integrazione: backup v1 migrato senza inventare cassa o effettivi', async 
   assert.equal(h.api.state.deadlines[0].cashMode, 'unknown'); assert.equal(h.api.state.deadlines[0].overrides['2026-11-30'].legacyCompleted, true); assert.equal(h.api.state.planner.ready, false);
 });
 test('integrazione: backup invalido non sovrascrive dati', async () => {
-  const h = harness(state()); await h.api.restoreBackup({ size: 1000, text: async () => '{"app":"Scadenzario","schemaVersion":99}' }); assert.equal(h.storage.get(key), JSON.stringify(state()));
+  const h = harness(state()); const before = h.storage.get(key); await h.api.restoreBackup({ size: 1000, text: async () => '{"app":"Scadenzario","schemaVersion":99}' }); assert.equal(h.storage.get(key), before);
 });
 test('sicurezza: backup v2 con data saldo malevola non viene ripristinato o persistito', async () => {
   const payload = '\"><img src=x onerror="globalThis.__planningXss=1">';
@@ -126,7 +127,7 @@ test('sicurezza: dati locali preesistenti con data saldo malevola sono rifiutati
   const saved = state();
   saved.planner.balanceDate = '\"><img src=x onerror="globalThis.__planningXss=1">';
   const h = harness(saved);
-  assert.equal(h.storage.get(key), JSON.stringify(saved));
+  assert.equal(h.storage.get(legacyKey), JSON.stringify(saved)); assert.equal(h.storage.has(key), false);
   assert.match(h.node('#app').innerHTML, /Non riesco ad aprire i dati/);
   assert.ok(!h.node('#app').innerHTML.includes('<img src=x'));
 });
@@ -144,8 +145,8 @@ test('integrazione: promemoria senza importo si completa e riapre senza inventar
 });
 test('integrazione: shell, build statica e server includono il modulo finanziario', async () => {
   const [html, sw, server, build] = await Promise.all(['index.html', 'service-worker.js', 'server.mjs', 'scripts/build-pages.mjs'].map(file => readFile(new URL(`../../${file}`, import.meta.url), 'utf8')));
-  assert.match(html, /src="\.\/app.js" type="module"/);
-  assert.match(sw, /'\.\/planning.js'/); assert.match(sw, /scadenzario-shell-v13-cash-report/);
+  assert.match(html, /type="module" data-scadenzario-runtime="[a-f0-9]+"/);
+  assert.match(sw, /\.\/planning\.js/); assert.match(sw, /scadenzario-shell-v15-/);
   assert.match(server, /'planning.js'/); assert.match(build, /'planning.js'/);
 });
 test('integrazione: home conserva scadenza oltre orizzonte e archivio si riattiva', () => {

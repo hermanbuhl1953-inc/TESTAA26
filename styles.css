@@ -456,3 +456,24 @@ summary { cursor: pointer; color: var(--navy); font-weight: 650; min-height: 44p
   .calendar-cash-detail { padding: 12px; }
   .radar-actions .button { width: 100%; }
 }
+
+/* Controlli ricorrenza compatti, con gli stessi colori della shell. */
+.recurrence-fields, .excluded-months { min-inline-size: 0; margin: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.recurrence-fields > legend, .excluded-months > legend { padding-inline: 6px; font-weight: 600; }
+.recurrence-fields .field-row { margin-block-end: 8px; }
+.month-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px 10px; }
+.month-options label { display: flex; align-items: center; gap: 6px; min-block-size: 44px; font-size: 13px; cursor: pointer; }
+.field-help { color: var(--text-muted); font-size: 12px; line-height: 1.5; margin-block: 8px 0; }
+.series-management summary { font-weight: 600; cursor: pointer; min-block-size: 32px; }
+.series-list { list-style: none; padding: 0; }
+.series-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 8px; border-block-end: 1px solid var(--line); }
+.series-list small { display: block; color: var(--text-muted); line-height: 1.5; }
+.series-list .text-button { flex-shrink: 0; min-block-size: 44px; }
+@media (max-width: 640px) {
+  .month-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .recurrence-fields .field-row { grid-template-columns: minmax(0, 1fr); }
+  .series-list li { flex-wrap: wrap; }
+}
+
+.storage-status, .update-status { position: sticky; inset-block-start: 0; z-index: 100; margin: 8px; padding: 12px; background: var(--surface); border: 2px solid var(--navy); color: var(--navy); }
+.storage-status p, .update-status p { margin-block: 4px; }

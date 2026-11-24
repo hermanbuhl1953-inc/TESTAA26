@@ -154,16 +154,16 @@ test('migrazione v1 preserva titolo, ancora osservata e completamenti senza inve
   const old = { schemaVersion: 1, deadlines: [{ ...series(), completed: true }] };
   delete old.deadlines[0].cashMode; delete old.deadlines[0].overrides;
   const next = migrate(old, today);
-  assert.equal(next.schemaVersion, 2); assert.equal(next.deadlines[0].dueDate, old.deadlines[0].dueDate); assert.equal(next.deadlines[0].cashMode, 'unknown'); assert.equal(next.planner.ready, false);
+  assert.equal(next.schemaVersion, 3); assert.equal(next.deadlines[0].dueDate, old.deadlines[0].dueDate); assert.equal(next.deadlines[0].cashMode, 'unknown'); assert.equal(next.planner.ready, false);
   const first = occurrences(next.deadlines, '2026-02-28')[0]; assert.ok(first.legacyCompleted); assert.equal(first.actual, null); assert.ok(next.migrationNotice); assert.equal(old.schemaVersion, 1);
 });
 test('backup v2 roundtrip conserva saldo, entrate, termini, eccezioni ed effettivi', () => {
   const s = setOccurrenceActual(series({ count: 12 }), '2026-02-28', { date: '2026-02-27', amountCents: 9900 }, today);
   const data = { schemaVersion: 2, planner: balance({ incomes: [once('2026-12-01', 100000)] }), deadlines: [s] };
-  assert.deepEqual(migrate(JSON.parse(JSON.stringify(data)), today), data);
+  assert.deepEqual(migrate(JSON.parse(JSON.stringify(data)), today), { ...data, schemaVersion: 3 });
 });
 test('migrazione rifiuta versioni future, duplicati e storico corrotto', () => {
-  assert.throws(() => migrate({ schemaVersion: 3, deadlines: [] }, today));
+  assert.throws(() => migrate({ schemaVersion: 4, deadlines: [] }, today));
   assert.throws(() => migrate({ schemaVersion: 2, planner: emptyPlanner(), deadlines: [series(), series()] }, today));
   assert.throws(() => validateSeries(series({ overrides: { '2026-02-27': { actual: null } } })));
   assert.throws(() => validateSeries(series({ overrides: { '2026-02-28': { archived: true } } })));

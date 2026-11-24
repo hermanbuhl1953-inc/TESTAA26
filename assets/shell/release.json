@@ -1,0 +1,59 @@
+{
+  "shell": "134c5bcbf87f01ae127d",
+  "runtime": "./assets/shell/runtime-8f54c4eda5aa07cd20a1.js",
+  "files": [
+    {
+      "path": "./index.html",
+      "sha256": "abb06a079d5cb1d5ca8c809c5e7749e998593d2657dc8df1e0665b4212b71d7a"
+    },
+    {
+      "path": "./app.js",
+      "sha256": "8f54c4eda5aa07cd20a156775effe4db826b9c2a94d6dd5499e9e46416045fd2"
+    },
+    {
+      "path": "./assets/shell/runtime-8f54c4eda5aa07cd20a1.js",
+      "sha256": "8f54c4eda5aa07cd20a156775effe4db826b9c2a94d6dd5499e9e46416045fd2"
+    },
+    {
+      "path": "./styles.css",
+      "sha256": "3fd1f8e114427b72e8630c61f772fa688ace2120fdbe8b75f04f10b3d4861c9e"
+    },
+    {
+      "path": "./planning.js",
+      "sha256": "2f304f5c75bf1a28c2e831488200fd1134ae150bb146b8532e53eac42a27b542"
+    },
+    {
+      "path": "./radar.js",
+      "sha256": "82d6cbfa5263cfb88bb113cf09595058f0703cef1fae3196ce68acf9a2f3f139"
+    },
+    {
+      "path": "./manifest.webmanifest",
+      "sha256": "04e0037f9042cd94565bd4706a2912cf627c45f49eaf034ef8d158890d18ffec"
+    },
+    {
+      "path": "./assets/catalog/deadlines.json",
+      "sha256": "833a2cb3a2d31151b80adb225967fbc47fc70ddd7207892e539789371d3ee9e3"
+    },
+    {
+      "path": "./assets/catalog/benefits.json",
+      "sha256": "d564141a081d1d971a558022754862e9a80ff7355aa6d8b810deb1a887be916d"
+    },
+    {
+      "path": "./assets/catalog/source-monitoring.json",
+      "sha256": "65636bf11cfe3a72d06c0eaeb03154778478c823d7a67e24a6bf34516c49946a"
+    },
+    {
+      "path": "./icons/icon.svg",
+      "sha256": "1e618834b872e94a94a2de8ace0c90330fa548d3642fde5e0662bb8064eecd2a"
+    },
+    {
+      "path": "./icons/icon-192.png",
+      "sha256": "6f27ef33cacda4a4d219d6b8455bd235459ecb893aad798a9c6bcb70bcdc69e9"
+    },
+    {
+      "path": "./icons/icon-512.png",
+      "sha256": "30998c80710334d4df0b51cc8f707ccbb638d9bf5a65ca87477414978fcf2b9a"
+    }
+  ],
+  "id": "c1699f5bf474698bfc90"
+}

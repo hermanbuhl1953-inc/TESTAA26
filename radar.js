@@ -23,7 +23,7 @@ export function buildRadar(planner, deadlines, today, end = planningEnd(today)) 
         continue;
       }
       for (const o of list) {
-        if (o.archived || o.completed) continue;
+        if (o.archived || o.completed || o.cancelled) continue;
         const common = { occurrenceId: o.id, income, date: o.cashDate ?? o.dueDate, title: o.title ?? o.name, dueDate: o.dueDate, cashDate: o.cashDate };
         const overdue = income ? o.cashDate && o.cashDate < today : o.dueDate < today || o.cashDate && o.cashDate < today;
         if (overdue) add({ ...common, type: income ? 'income-overdue' : 'expense-overdue', severity: 1,
@@ -58,7 +58,8 @@ export function buildRadar(planner, deadlines, today, end = planningEnd(today)) 
 
 export function filterAgenda(items, { period = 'today', category = 'all', status = 'active', date }, today) {
   return items.filter(o => {
-    if (status === 'archived' ? !o.archived : o.archived) return false;
+    if (status === 'cancelled' ? !o.cancelled : o.cancelled) return false;
+    if (status !== 'cancelled' && (status === 'archived' ? !o.archived : o.archived)) return false;
     if (status === 'active' && o.completed || status === 'completed' && !o.completed) return false;
     if (category !== 'all' && o.category !== category) return false;
     return period === 'all' || (period === 'day' ? o.dueDate === date : period === 'today' ? o.dueDate === today : period === 'overdue' ? o.dueDate < today && !o.completed && !o.archived : o.dueDate > today);

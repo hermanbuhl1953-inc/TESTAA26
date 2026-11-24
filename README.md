@@ -79,7 +79,7 @@ node backend/resolve-source-change.mjs milano-quota-nidi "Requisiti riletti sull
 
 - Profilo e scadenze sono conservati nel `localStorage` di quel browser e dispositivo.
 - I dati **non sono cifrati**, sincronizzati o protetti da un account.
-- Saldo di riferimento datato, riserva, entrate previste, occorrenze ed effettivi sono salvati nello stesso `localStorage` e nel backup JSON versione 2. Migrazione dei backup versione 1 senza inventare date di cassa o pagamenti; verifica i dati storici e conserva prima un backup. Dettagli e applicazione locale: [`docs/PLANNING_AFFIDABILE.md`](./docs/PLANNING_AFFIDABILE.md).
+- Saldo di riferimento datato, riserva, entrate previste, occorrenze ed effettivi sono salvati nello stesso `localStorage` e nel backup JSON versione 3. Importazione e migrazione dei backup versioni 1 e 2 senza inventare date di cassa o pagamenti; verifica i dati storici e conserva prima un backup. Dettagli e applicazione locale: [`docs/PLANNING_AFFIDABILE.md`](./docs/PLANNING_AFFIDABILE.md).
 - Non inserire documenti, dati sanitari o informazioni riservate.
 - L'eliminazione dei dati del sito dal browser può cancellare le scadenze. Esporta periodicamente un backup.
 - Le voci del catalogo sono promemoria generici, non consulenza fiscale o legale: verifica date e periodicità con fonti ufficiali e personalizza i suggerimenti prima di salvarli.
@@ -137,3 +137,14 @@ Esiti effettivamente misurati, dipendenze non disponibili e limiti della prova v
 - Architettura e limiti: [`docs/ARCHITETTURA_PWA.md`](./docs/ARCHITETTURA_PWA.md)
 - Backlog aggiornato: [`docs/BACKLOG_SPRINTS.md`](./docs/BACKLOG_SPRINTS.md)
 - Test del monitoraggio fonti: `node --test backend/source-monitor.test.mjs`
+
+
+## Ricorrenze avanzate
+
+Giorno fisso con mesi esclusi e giorno settimanale nel mese (es. primo mercoledì), modifica singola o intera serie e annullamento singolo recuperabile. In **Planning → Gestisci serie e annullate** si modificano anche le serie senza occorrenze visibili e si recuperano gli annullamenti. Effettivi ed eccezioni restano protetti; nessuna cancellazione dei pagamenti. Backup v3 con import v1/v2: non usare la vecchia app sui dati v3. Semantica, prove e applicazione prudente: [Ricorrenze avanzate](docs/RICORRENZE_AVANZATE.md).
+
+La revisione isola l’archivio v3 dalla vecchia chiave e protegge i salvataggi tra schede con revisioni e Web Locks; senza questa API i salvataggi sono bloccati, con lettura/esportazione disponibili. Ricaricare tutte le vecchie schede dopo aver conservato i backup: le modifiche legacy successive non sono unite automaticamente.
+
+Per mantenere la shell coerente anche durante il passaggio dal vecchio worker, `app.js` e la parte runtime di `index.html` sono generati autosufficienti. Modificare la UI in `app-source.js` e il worker in `scripts/service-worker.template.js`; dopo modifiche eseguire `node scripts/build-shell.mjs`, oppure `node scripts/build-pages.mjs` che lo include. Nessuna dipendenza aggiunta. Il runtime versionato e il worker verificano la stessa release; non pubblicare singoli file generati fuori dalla build completa.
+
+La seconda revisione cattura destinatario e payload prima di attendere il lock, protegge le sessioni dei moduli e conserva le bozze riaperte o ancora modificate. Le importazioni concorrenti e i comandi del vecchio archivio sono controllati separatamente. Gli avvisi esterni all’app e i controlli delle finestre usano la delegazione comune su document; le prove verificano anche la propagazione degli eventi. Dettagli e limiti nella documentazione delle ricorrenze avanzate.
