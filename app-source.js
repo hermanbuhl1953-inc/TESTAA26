@@ -743,6 +743,7 @@ function renderDeadlineList(deadlines) {
 
 function renderDeadlineCard(deadline) {
   const status = deadlineStatus(deadline);
+  const statusClass = ['urgent', 'overdue'].includes(status.className) ? status.className : '';
   const date = parseIsoDate(deadline.dueDate);
   const recurrence = deadline.recurrenceMonths ? ` · ${recurrenceLabel(deadline.recurrenceMonths)}` : '';
   const amount = deadline.amountCents > 0 ? formatAmount(deadline.amountCents) : '';
@@ -763,9 +764,9 @@ function renderDeadlineCard(deadline) {
       <button class="card-action" type="button" data-action="archive-deadline" data-id="${escapeHtml(deadline.id)}" aria-label="Archivia intera serie ${escapeHtml(deadline.title)}" title="Archivia intera serie">${icon('archive')}</button>
     </div>`;
   return `<article class="${classes.join(' ')}">
-    <span class="date-icon">${icon('calendar')}<small>${escapeHtml(new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(date))}</small></span>
+    ${date ? `<time class="date-icon" datetime="${escapeHtml(deadline.dueDate)}" aria-label="Scadenza: ${escapeHtml(formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }))}"><span class="date-day">${escapeHtml(formatDate(date, { day: 'numeric' }))}</span><small>${escapeHtml(formatDate(date, { month: 'short' }).toLocaleUpperCase('it-IT'))}</small></time>` : `<span class="date-icon date-icon-invalid">${escapeHtml(formatDate(deadline.dueDate))}</span>`}
     <div><p class="deadline-title">${escapeHtml(deadline.title)}</p><p class="deadline-meta">${escapeHtml(categoryName(deadline.category))}${escapeHtml(recurrence)}${deadline.notes ? ` · ${escapeHtml(deadline.notes)}` : ''} · Scadenza: ${escapeHtml(formatDate(deadline.dueDate))} · ${expectedDateLabel(false, deadline.amountCents)}: ${deadline.cashDate ? escapeHtml(formatDate(deadline.cashDate)) : 'non nota'}${deadline.actual ? ` · Pagato ${escapeHtml(formatAmount(deadline.actual.amountCents))} il ${escapeHtml(formatDate(deadline.actual.date))}` : deadline.legacyCompleted ? ' · Storico: data/importo effettivi sconosciuti' : ''}</p></div>
-    <div class="deadline-right">${amount ? `<span class="deadline-amount">${escapeHtml(amount)}</span>` : ''}<span class="status-pill ${status.className}">${escapeHtml(status.text)}</span>${actionButtons}</div>
+    <div class="deadline-right">${amount ? `<span class="deadline-amount">${escapeHtml(amount)}</span>` : ''}<span class="status-pill ${statusClass}">${escapeHtml(status.text)}</span>${actionButtons}</div>
   </article>`;
 }
 
