@@ -75,11 +75,14 @@
   --radius-card: 20px;
   --radius-button: 13px;
   --radius-date: 14px;
+  --radius-pill: 999px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
+  --date-tile-size: 52px;
   --font-h1: 34px;
   --font-h2: 19px;
   --font-secondary: 12px;
@@ -621,4 +624,131 @@ h2 { font-weight: 700; }
 .switch input:focus-visible + .switch-track { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (max-width: 760px) {
   :root { --font-h1: 28px; --font-h2: 18px; }
+}
+
+/* Phase B components; shell geometry and Home grids remain unchanged. */
+.plan-panel, .settings-card, .stat-card, .deadline-card, .catalog-item,
+.benefit-card, .source-monitoring, .radar-card, .calendar-cash-detail,
+.agenda-calendar, .empty-state {
+  min-inline-size: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.plan-panel { padding: var(--space-6); }
+.home-priorities { padding: var(--space-5); }
+/* Compact nested action cards retain their 14px baseline at every width. */
+.home-priorities .radar-card { padding: 14px; background: var(--surface); }
+.staging-card { border-color: var(--warning-border); }
+.deadline-card:hover { box-shadow: var(--shadow-card); }
+.empty-state { padding-block: var(--space-6); border-style: dashed; }
+.empty-context {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.empty-state > *, .catalog-item > *, .staging-card-heading > * { min-inline-size: 0; }
+.settings-card, .catalog-item, .benefit-card, .source-monitoring { overflow-wrap: anywhere; }
+
+.button, .text-button, .card-action, .icon-button {
+  border-radius: var(--radius-button);
+  transition: background var(--motion-fast), color var(--motion-fast), box-shadow var(--motion-fast);
+}
+.button { max-inline-size: 100%; padding-block: var(--space-2); white-space: normal; overflow-wrap: anywhere; }
+.button-primary { box-shadow: var(--shadow-primary); }
+.button-primary:hover { box-shadow: var(--shadow-primary); }
+.button-primary:active { background: var(--navy-dark); box-shadow: none; }
+.button-quiet:active { color: var(--navy); background: var(--info-bg); }
+.text-button { padding-inline: var(--space-2); text-align: start; }
+.text-button:hover, .card-action:hover, .icon-button:hover { color: var(--navy); background: var(--info-bg); }
+.text-button:active, .card-action:active, .icon-button:active { color: var(--ink); background: var(--soft); }
+.button:disabled, .text-button:disabled, .card-action:disabled, .icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  color: var(--text-muted);
+  background: var(--soft);
+  box-shadow: none;
+  transform: none;
+  text-decoration: none;
+}
+.button:disabled { border-color: var(--control-border); }
+.button:focus-visible, .text-button:focus-visible, .card-action:focus-visible, .icon-button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.button svg { flex-shrink: 0; }
+.card-actions .text-button { max-inline-size: 100%; overflow-wrap: anywhere; }
+
+.status-pill, .staging-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.status-pill::before, .staging-badge::before {
+  content: "";
+  flex: 0 0 6px;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.deadline-card { grid-template-columns: var(--date-tile-size) minmax(0, 1fr) auto; }
+.date-icon {
+  inline-size: var(--date-tile-size);
+  block-size: var(--date-tile-size);
+  gap: 0;
+  border-radius: var(--radius-date);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.date-day { font-size: 20px; font-weight: 700; }
+.date-icon small { font-weight: 700; text-transform: uppercase; }
+.date-icon-invalid { padding: var(--space-1); font-size: var(--font-secondary); text-align: center; overflow-wrap: anywhere; }
+.deadline-card > div, .deadline-right { min-inline-size: 0; }
+.deadline-title, .deadline-meta, .deadline-amount { overflow-wrap: anywhere; }
+.deadline-amount { max-inline-size: 100%; white-space: normal; }
+
+.field input, .field select, .field textarea {
+  min-block-size: 44px;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  border-color: var(--control-border);
+  border-radius: var(--radius-button);
+}
+.field input:disabled, .field select:disabled, .field textarea:disabled, .select-control:disabled {
+  color: var(--text-muted);
+  background: var(--soft);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.field input[readonly], .field textarea[readonly] { background: var(--soft); border-style: dashed; }
+.field [aria-invalid="true"] { border-color: var(--error-border); }
+.field-help { font-size: var(--font-secondary-large); }
+.form-error { padding: var(--space-2) var(--space-3); border-inline-start: 3px solid var(--error-border); border-radius: var(--space-1); background: var(--error-bg); line-height: 1.5; }
+.reminder-options label, .checkline { min-block-size: 44px; cursor: pointer; }
+.reminder-options label { padding-block: var(--space-2); }
+.checkline { padding-block: var(--space-2); }
+
+.loading-screen { padding: var(--space-6); }
+.loading-screen > p { margin-block: 0; }
+.loading-skeleton { display: grid; gap: var(--space-3); inline-size: min(100%, 448px); margin-block-start: var(--space-3); }
+.skeleton-card { display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow-card); }
+.skeleton-line { display: block; block-size: 12px; inline-size: 100%; border-radius: var(--space-1); background: var(--soft); }
+.skeleton-line-short { inline-size: 45%; }
+@media (max-width: 760px) {
+  :root { --date-tile-size: 46px; }
+  .plan-panel { padding: var(--space-5); }
+  .deadline-card { grid-template-columns: var(--date-tile-size) minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-skeleton, .loading-skeleton * { animation: none; transition: none; }
 }
