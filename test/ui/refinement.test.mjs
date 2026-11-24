@@ -91,7 +91,7 @@ test('Rendering non muta stato, storage, chiavi ISO né valori input date', asyn
   assert.equal(h.node('#deadline-cash-date').value, '2026-11-17');
   h.api.exportBackup();
   const backup = JSON.parse(await h.blob().text());
-  assert.equal(backup.schemaVersion, 2);
+  assert.equal(backup.schemaVersion, 3);
   assert.equal(backup.planner.balanceDate, '2026-11-01');
   assert.equal(backup.deadlines[0].dueDate, '2026-11-17');
   const input = await readFile(new URL('../../index.html', import.meta.url), 'utf8');

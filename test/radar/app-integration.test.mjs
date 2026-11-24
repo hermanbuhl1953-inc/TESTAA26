@@ -6,8 +6,9 @@ import vm from 'node:vm';
 import * as planning from '../../planning.js';
 import * as radar from '../../radar.js';
 
-const source = (await readFile(new URL('../../app.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
-const key = 'scadenzario.pwa.v1';
+const source = (await readFile(new URL('../../app-source.js', import.meta.url), 'utf8')).replace(/^import .* from '\.\/planning.js';/m, 'const { SCHEMA_VERSION, emptyPlanner, migrate, occurrences, project, validateSeries, validatePlanner, setOccurrenceActual, shiftMonth, cashReport, updateSeries, setOccurrenceCancelled, getOccurrence } = engine;').replace(/^import .* from '\.\/radar.js';/m, 'const { buildRadar, filterAgenda, planningEnd } = radarEngine;');
+const key = 'scadenzario.pwa.v3';
+const legacyKey = 'scadenzario.pwa.v1';
 function harness(saved = null) {
   const nodes = new Map();
   const classes = () => ({ add() {}, remove() {}, toggle() {} });
@@ -15,14 +16,14 @@ function harness(saved = null) {
     if (!nodes.has(selector)) nodes.set(selector, { value: '', textContent: '', innerHTML: '', dataset: {}, classList: classes(), setAttribute(k, v) { this[k] = v; }, removeAttribute(k) { delete this[k]; }, append() {}, remove() {}, click() {}, addEventListener() {}, reset() {}, querySelectorAll() { return []; }, focus() { this.focused = true; }, showModal() { this.open = true; }, close() { this.open = false; } });
     return nodes.get(selector);
   };
-  const storage = new Map(saved ? [[key, JSON.stringify(saved)]] : []);
+  const storage = new Map(saved ? [[legacyKey, JSON.stringify(saved)]] : []);
   let failStorage = false;
   let blob;
   const context = vm.createContext({
     engine: planning, radarEngine: radar,
     document: { querySelector: node, createElement: () => node(`created-${nodes.size}`), body: { append() {} }, addEventListener() {}, hidden: false },
     localStorage: { getItem: k => storage.get(k) ?? null, setItem(k, v) { if (failStorage) throw new Error('quota esaurita'); storage.set(k, v); } },
-    window: { addEventListener() {}, confirm() { return true; }, isSecureContext: false }, navigator: {},
+    window: { addEventListener() {}, confirm() { return true; }, isSecureContext: false }, navigator: { locks: { request(name, options, action) { return action(); } } },
     setTimeout() {}, clearTimeout() {}, setInterval() {}, console: { error() {} },
     Date: class extends Date { constructor(...args) { super(...(args.length ? args : ['2026-11-18T12:00:00Z'])); } }, Intl,
     fetch: async () => { throw new Error('Rete disabilitata nel test'); },
@@ -260,8 +261,9 @@ test('Home e Planning: stesso motore e periodo effettivo, no selettori periodo d
 test('PWA: nuovo modulo incluso in shell, cache, build e allowlist con percorsi relativi', async () => {
   const [html, sw, server, build, app] = await Promise.all(['index.html', 'service-worker.js', 'server.mjs', 'scripts/build-pages.mjs', 'app.js'].map(file => readFile(new URL(`../../${file}`, import.meta.url), 'utf8')));
   assert.doesNotMatch(html, /id="app"[^>]*aria-live/);
-  assert.match(sw, /scadenzario-shell-v13-cash-report/);
-  assert.match(sw, /'\.\/radar.js'/); assert.match(server, /'radar.js'/); assert.match(build, /'radar.js'/);
-  assert.match(app, /from '\.\/radar.js'/);
+  assert.match(sw, /scadenzario-shell-v15-/);
+  assert.match(sw, /\.\/radar\.js/); assert.match(server, /'radar.js'/); assert.match(build, /'radar.js'/);
+  assert.doesNotMatch(app, /^import /m);
+  assert.match(app, /function buildRadar\(/);
   assert.doesNotMatch(app, /from '\/radar.js'/);
 });

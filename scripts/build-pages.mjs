@@ -2,6 +2,8 @@ import { copyFile, cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+await import('./build-shell.mjs');
+
 const projectDirectory = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const outputDirectory = path.join(projectDirectory, 'site');
 const publicFiles = [

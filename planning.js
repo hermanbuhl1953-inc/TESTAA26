@@ -1,5 +1,5 @@
 // Motore puro: date civili ISO, importi interi in centesimi, nessun accesso al browser.
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 export function validDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [y, m, d] = value.split('-').map(Number);
@@ -26,11 +26,20 @@ export function validateSeries(s) {
   assert(s.cashMode !== 'date' || validDate(s.cashDate), 'Data di cassa non valida.');
   assert(s.endDate === null || validDate(s.endDate) && s.endDate >= s.dueDate, 'Termine per data non valido.');
   assert(s.count === null || Number.isInteger(s.count) && s.count >= 1 && s.count <= 1200, 'Numero occorrenze: da 1 a 1200.');
+  validateRule(s);
   assert(s.overrides && typeof s.overrides === 'object' && !Array.isArray(s.overrides), 'Eccezioni non valide.');
+  assert(s.snapshots === undefined || s.snapshots && typeof s.snapshots === 'object' && !Array.isArray(s.snapshots), 'Istantanee non valide.');
+  for (const [key, snapshot] of Object.entries(s.snapshots ?? {})) {
+    assert(validDate(key) && Object.hasOwn(s.overrides, key), 'Istantanea senza eccezione collegata.');
+    validateSnapshot(snapshot);
+  }
+  const overrideKeys = Object.keys(s.overrides);
+  const lastKey = overrideKeys.filter(validDate).sort().at(-1);
+  const scheduledKeys = new Set(lastKey ? [...scheduled(s, lastKey)].map(o => o.key) : []);
   for (const [key, o] of Object.entries(s.overrides)) {
-    assert(validDate(key) && isOccurrenceDate(s, key), 'Identificativo occorrenza non valido.');
+    assert(validDate(key) && (Object.hasOwn(s.snapshots ?? {}, key) || scheduledKeys.has(key)), 'Identificativo occorrenza non valido.');
     assert(o && typeof o === 'object' && !Array.isArray(o), 'Eccezione non valida.');
-    assert(Object.keys(o).every(k => ['amountCents', 'dueDate', 'cashMode', 'cashDate', 'legacyCompleted', 'actual', 'done', 'title', 'category', 'notes', 'reminderDays'].includes(k)), 'Campo eccezione non supportato.');
+    assert(Object.keys(o).every(k => ['amountCents', 'dueDate', 'cashMode', 'cashDate', 'legacyCompleted', 'actual', 'done', 'title', 'category', 'notes', 'reminderDays', 'cancelled'].includes(k)), 'Campo eccezione non supportato.');
     assert(o.title === undefined || typeof o.title === 'string' && o.title.trim().length > 0 && o.title.length <= 100, 'Titolo occorrenza non valido.');
     assert(o.category === undefined || typeof o.category === 'string', 'Categoria occorrenza non valida.');
     assert(o.notes === undefined || typeof o.notes === 'string' && o.notes.length <= 500, 'Note occorrenza non valide.');
@@ -41,48 +50,122 @@ export function validateSeries(s) {
     assert(o.cashDate === undefined || o.cashDate === null || validDate(o.cashDate), 'Data cassa occorrenza non valida.');
     assert(o.cashMode !== 'date' || validDate(o.cashDate), 'Indica la data di cassa della singola occorrenza.');
     assert(o.legacyCompleted === undefined || typeof o.legacyCompleted === 'boolean', 'Stato storico non valido.');
-    assert(o.done === undefined || typeof o.done === 'boolean' && (!o.done || (o.amountCents ?? s.amountCents) === 0 && !o.actual), 'Solo promemoria senza importo possono essere completati senza movimento.');
-    if (o.actual != null) assert(validDate(o.actual.date) && money(o.actual.amountCents) && o.actual.amountCents > 0, 'Effettivo: data e importo positivo richiesti.');
+    assert(o.done === undefined || typeof o.done === 'boolean' && (!o.done || (o.amountCents ?? s.snapshots?.[key]?.amountCents ?? s.amountCents) === 0 && !o.actual), 'Solo promemoria senza importo possono essere completati senza movimento.');
+    assert(o.cancelled === undefined || typeof o.cancelled === 'boolean', 'Annullamento non valido.');
+    assert(!o.cancelled || !o.actual && !o.legacyCompleted && !o.done, 'Non puoi annullare una occorrenza già completata: lo storico resta visibile.');
+    if (o.actual != null) assert(o.actual && typeof o.actual === 'object' && !Array.isArray(o.actual) && Object.keys(o.actual).every(k => ['date', 'amountCents'].includes(k)) && validDate(o.actual.date) && money(o.actual.amountCents) && o.actual.amountCents > 0, 'Effettivo: data e importo positivo richiesti.');
+  }
+}
+function validateRule(s) {
+  const rule = s.monthlyRule;
+  assert(rule === undefined || rule === null || rule && typeof rule === 'object' && !Array.isArray(rule), 'Regola mensile non valida.');
+  if (rule != null) {
+    assert(s.recurrenceMonths > 0, 'La regola richiede una ricorrenza.');
+    if (rule.kind === 'day') assert(Object.keys(rule).length === 2 && Number.isInteger(rule.day) && rule.day >= 1 && rule.day <= 31, 'Giorno fisso: da 1 a 31.');
+    else assert(rule.kind === 'weekday' && Object.keys(rule).length === 3 && Number.isInteger(rule.ordinal) && [-1, 1, 2, 3, 4, 5].includes(rule.ordinal) && Number.isInteger(rule.weekday) && rule.weekday >= 0 && rule.weekday <= 6, 'Giorno della settimana o posizione non valido.');
+  }
+  const excluded = s.excludedMonths;
+  assert(excluded === undefined || Array.isArray(excluded) && excluded.length < 12 && excluded.every(m => Number.isInteger(m) && m >= 1 && m <= 12) && new Set(excluded).size === excluded.length, 'Mesi esclusi: scegli mesi distinti da 1 a 12, non tutti.');
+  assert(!excluded?.length || s.recurrenceMonths > 0, 'I mesi esclusi richiedono una ricorrenza.');
+  assert(!excluded?.length || Array.from({ length: 12 }, (_, i) => (Number(s.dueDate.slice(5, 7)) - 1 + i * s.recurrenceMonths) % 12 + 1).some(m => !excluded.includes(m)), 'I mesi esclusi eliminano tutte le ricorrenze della serie.');
+}
+const snapshotFields = ['title', 'name', 'category', 'notes', 'reminderDays', 'amountCents', 'dueDate', 'cashMode', 'cashDate'];
+function validateSnapshot(o) {
+  assert(o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).every(k => snapshotFields.includes(k)), 'Campo istantanea non supportato.');
+  assert(validDate(o.dueDate) && money(o.amountCents) && ['same', 'date', 'unknown'].includes(o.cashMode), 'Istantanea non valida.');
+  assert(o.cashDate === null || validDate(o.cashDate), 'Data cassa istantanea non valida.');
+  assert(o.cashMode !== 'date' || validDate(o.cashDate), 'Data cassa istantanea obbligatoria.');
+  assert(o.cashMode !== 'same' || o.cashDate === o.dueDate, 'Cassa istantanea incoerente.');
+  assert(o.cashMode !== 'unknown' || o.cashDate === null, 'Cassa sconosciuta incoerente.');
+  assert(typeof (o.title ?? o.name) === 'string' && (o.title ?? o.name).trim().length > 0, 'Titolo istantanea richiesto.');
+  for (const field of ['title', 'name', 'category', 'notes']) assert(o[field] === undefined || typeof o[field] === 'string' && o[field].length <= (field === 'notes' ? 500 : 100), 'Testo istantanea non valido.');
+  assert(o.reminderDays === undefined || Array.isArray(o.reminderDays) && o.reminderDays.every(d => Number.isInteger(d) && d >= 0 && d <= 365), 'Promemoria istantanea non validi.');
+}
+function monthOffset(anchor, key) {
+  return (Number(key.slice(0, 4)) - Number(anchor.slice(0, 4))) * 12 + Number(key.slice(5, 7)) - Number(anchor.slice(5, 7));
+}
+function ruleDate(s, month, offset) {
+  const rule = s.monthlyRule;
+  if (!rule) return shiftMonth(s.dueDate, offset);
+  const [year, number] = month.split('-').map(Number), last = daysInMonth(year, number);
+  let day;
+  if (rule.kind === 'day') day = Math.min(rule.day, last);
+  else if (rule.ordinal === -1) day = last - (new Date(Date.UTC(year, number - 1, last)).getUTCDay() - rule.weekday + 7) % 7;
+  else day = 1 + (rule.weekday - new Date(Date.UTC(year, number - 1, 1)).getUTCDay() + 7) % 7 + (rule.ordinal - 1) * 7;
+  return day > last ? null : `${month.slice(0, 8)}${String(day).padStart(2, '0')}`;
+}
+// Il conteggio precede i tombstone: un annullamento non allunga la serie.
+// Mesi esclusi e quinti giorni assenti, invece, non consumano il limite.
+function* scheduled(s, until, includeCash = false) {
+  const protectedMonths = new Set(Object.keys(s.snapshots ?? {}).map(key => key.slice(0, 7)));
+  let count = 0;
+  for (let step = 0; ; step += 1) {
+    if (s.count !== null && count >= s.count) break;
+    const offset = step * s.recurrenceMonths;
+    const year = Number(s.dueDate.slice(0, 4)) + Math.floor((Number(s.dueDate.slice(5, 7)) - 1 + offset) / 12);
+    if (year > 9998) break;
+    const month = shiftMonth(s.dueDate.slice(0, 8) + '01', offset);
+    const cash = includeCash && s.cashMode === 'date' ? shiftCashDate(s.cashDate, offset) : null;
+    if (month.slice(0, 7) > until.slice(0, 7) && (!cash || cash > until)) break;
+    if (s.endDate && month > s.endDate) break;
+    const key = s.recurrenceMonths ? ruleDate(s, month, offset) : s.dueDate;
+    if (key && key >= s.dueDate && (!s.endDate || key <= s.endDate) && !(s.excludedMonths ?? []).includes(Number(month.slice(5, 7)))) {
+      count += 1;
+      // Una data nuova nello stesso mese non deve ricreare la rata già protetta.
+      if ((!protectedMonths.has(key.slice(0, 7)) || Object.hasOwn(s.snapshots, key)) && (key <= until || cash && cash <= until)) yield { key, offset };
+    }
+    if (!s.recurrenceMonths) break;
+    assert(step < 100000, 'Serie oltre il limite di calcolo.');
   }
 }
 function isOccurrenceDate(s, key) {
-  if (key < s.dueDate || s.endDate && key > s.endDate) return false;
-  const [y, m] = key.split('-').map(Number), [ay, am] = s.dueDate.split('-').map(Number);
-  const offset = (y - ay) * 12 + m - am;
-  if (!s.recurrenceMonths) return key === s.dueDate;
-  return offset % s.recurrenceMonths === 0 && (s.count === null || offset / s.recurrenceMonths < s.count) && shiftMonth(s.dueDate, offset) === key;
+  if (!validDate(key)) return false;
+  if (Object.hasOwn(s.snapshots ?? {}, key)) return true;
+  return [...scheduled(s, key)].some(o => o.key === key);
 }
 export function occurrences(series, endDate, fromDate = '1900-01-01') {
   assert(validDate(endDate) && validDate(fromDate), 'Intervallo non valido.');
   const result = [];
   for (const s of series) {
-    let index = 0;
-    const seen = new Set();
-    while (true) {
-      if (s.count !== null && index >= s.count) break;
-      const offset = index * s.recurrenceMonths;
-      const year = Number(s.dueDate.slice(0, 4)) + Math.floor((Number(s.dueDate.slice(5, 7)) - 1 + offset) / 12);
-      if (year > 9998) break;
-      const key = shiftMonth(s.dueDate, offset);
-      // Include overrides independently below: a payment can precede its scheduled due date.
-      const cash = s.cashMode === 'date' ? shiftCashDate(s.cashDate, offset) : key;
-      if (key > endDate && (cash === null || cash > endDate) || s.endDate && key > s.endDate) break;
-      if (key >= fromDate || s.overrides[key]) {
-        result.push(materialize(s, key, offset));
-        seen.add(key);
-      }
-      if (!s.recurrenceMonths) break;
-      index += 1;
-      assert(index <= 100000, 'Serie oltre il limite di calcolo.');
+    const items = new Map();
+    for (const { key, offset } of scheduled(s, endDate, true)) {
+      if (key >= fromDate || s.overrides[key]) items.set(key, materialize(s, key, offset));
     }
     for (const key of Object.keys(s.overrides)) {
-      if (seen.has(key)) continue;
-      const [y, m] = key.split('-').map(Number), [ay, am] = s.dueDate.split('-').map(Number);
-      const o = materialize(s, key, (y - ay) * 12 + m - am);
-      if (o.actual || o.dueDate <= endDate || o.cashDate && o.cashDate <= endDate) result.push(o);
+      if (items.has(key)) continue;
+      const o = materialize(s, key, monthOffset(s.dueDate, key));
+      if (o.actual || o.dueDate <= endDate || o.cashDate && o.cashDate <= endDate) items.set(key, o);
     }
+    result.push(...[...items.values()].sort((a, b) => a.key.localeCompare(b.key)));
   }
   return result;
+}
+// Le eccezioni sono congelate prima di cambiare regola: nessuna riassegnazione
+// di pagamenti o spostamenti alle nuove date generate.
+export function updateSeries(series, changes) {
+  validateSeries(series);
+  assert(changes && Object.keys(changes).every(k => ['title', 'name', 'category', 'notes', 'reminderDays', 'amountCents', 'dueDate', 'cashMode', 'cashDate', 'recurrenceMonths', 'endDate', 'count', 'monthlyRule', 'excludedMonths', 'updatedAt'].includes(k)), 'Modifica serie non supportata.');
+  const snapshots = { ...series.snapshots };
+  for (const key of Object.keys(series.overrides)) {
+    if (snapshots[key]) continue;
+    const occurrence = materialize(series, key, monthOffset(series.dueDate, key));
+    snapshots[key] = Object.fromEntries(snapshotFields.filter(k => occurrence[k] !== undefined).map(k => [k, occurrence[k]]));
+  }
+  const next = { ...series, ...changes, overrides: { ...series.overrides }, snapshots };
+  assert(!(next.endDate && next.count) || series.endDate === next.endDate && series.count === next.count, 'Scegli un solo termine per la nuova regola.');
+  validateSeries(next);
+  return next;
+}
+export function getOccurrence(series, key) {
+  return isOccurrenceDate(series, key) ? materialize(series, key, monthOffset(series.dueDate, key)) : null;
+}
+export function setOccurrenceCancelled(series, key, cancelled) {
+  assert(typeof cancelled === 'boolean' && isOccurrenceDate(series, key), 'Occorrenza o annullamento non valido.');
+  const o = materialize(series, key, monthOffset(series.dueDate, key));
+  assert(!cancelled || !o.completed, 'Occorrenza già completata: non può essere annullata o nascosta.');
+  const next = { ...series, overrides: { ...series.overrides, [key]: { ...series.overrides[key], cancelled } } };
+  validateSeries(next);
+  return next;
 }
 function shiftCashDate(anchor, offset) {
   const [year, month] = anchor.split('-').map(Number);
@@ -90,10 +173,11 @@ function shiftCashDate(anchor, offset) {
   return shiftMonth(anchor, offset);
 }
 function materialize(s, key, offset) {
+  const base = s.snapshots?.[key] ?? s;
   const o = s.overrides[key] || {};
-  const dueDate = o.dueDate ?? key, cashMode = o.cashMode ?? s.cashMode;
-  const cashDate = cashMode === 'same' ? dueDate : cashMode === 'date' ? (o.cashDate ?? shiftCashDate(s.cashDate, offset)) : null;
-  return { ...s, ...o, seriesId: s.id, key, id: `${s.id}@${key}`, dueDate, cashDate, actual: o.actual ?? null, completed: Boolean(o.actual || o.legacyCompleted || o.done), amountCents: o.amountCents ?? s.amountCents };
+  const dueDate = o.dueDate ?? (s.snapshots?.[key] ? base.dueDate : key), cashMode = o.cashMode ?? base.cashMode;
+  const cashDate = cashMode === 'same' ? dueDate : cashMode === 'date' ? (o.cashDate ?? (s.snapshots?.[key] ? base.cashDate : shiftCashDate(s.cashDate, offset))) : null;
+  return { ...s, ...base, ...o, seriesId: s.id, key, id: `${s.id}@${key}`, dueDate, cashDate, actual: o.actual ?? null, cancelled: o.cancelled === true, completed: Boolean(o.actual || o.legacyCompleted || o.done), amountCents: o.amountCents ?? base.amountCents };
 }
 export function validatePlanner(p, today) {
   assert(p && typeof p.ready === 'boolean' && money(p.openingBalanceCents, true) && money(p.reserveCents) && Array.isArray(p.incomes), 'Planning non valido.');
@@ -103,7 +187,7 @@ export function validatePlanner(p, today) {
   for (const s of p.incomes) { validateSeries(s); assert(Object.values(s.overrides).every(o => !o.actual || o.actual.date <= today), 'Incasso effettivo futuro non ammesso.'); assert(!ids.has(s.id), 'Entrata duplicata.'); ids.add(s.id); }
 }
 export function migrate(raw, today) {
-  assert(raw && [1, 2].includes(raw.schemaVersion) && Array.isArray(raw.deadlines), 'Versione dati non supportata.');
+  assert(raw && [1, 2, SCHEMA_VERSION].includes(raw.schemaVersion) && Array.isArray(raw.deadlines), 'Versione dati non supportata.');
   const data = JSON.parse(JSON.stringify(raw));
   if (data.schemaVersion === 1) {
     data.planner = emptyPlanner();
@@ -131,7 +215,7 @@ export function project(planner, deadlines, today, endDate) {
       if (o.actual.date > planner.balanceDate || o.actual.date === planner.balanceDate && !planner.sameDayActualsIncluded) events.push({ date: o.actual.date, amountCents: o.sign * o.actual.amountCents, label, actual: true });
       continue;
     }
-    if (o.done) continue;
+    if (o.done || o.cancelled) continue;
     if (o.legacyCompleted) { warnings.push(`${label}: completamento storico senza data/importo effettivi; riconciliare.`); continue; }
     if (o.archived) continue;
     if (!o.amountCents) warnings.push(`${label}: importo mancante.`);
@@ -181,7 +265,7 @@ export function cashReport(planner, deadlines, fromDate, toDate, today) {
   for (const o of all) {
     if (o.actual) assert(o.actual.date <= today, 'Un effettivo non può avere data futura.');
     if (!o.actual && o.legacyCompleted) { unplacedLegacy += 1; continue; }
-    if (!o.actual && (o.done || o.archived)) continue;
+    if (!o.actual && (o.done || o.archived || o.cancelled)) continue;
     const date = o.actual ? o.actual.date : o.cashDate;
     if (!date) { unknownDate += 1; continue; }
     if (date < fromDate || date > toDate) continue;
@@ -200,6 +284,7 @@ export function cashReport(planner, deadlines, fromDate, toDate, today) {
 }
 export function setOccurrenceActual(series, key, actual, today) {
   assert(isOccurrenceDate(series, key), 'Occorrenza non trovata.');
+  assert(!series.overrides[key]?.cancelled, 'Ripristina prima la occorrenza annullata.');
   assert(actual === null || validDate(actual.date) && actual.date <= today && money(actual.amountCents) && actual.amountCents > 0, 'Effettivo: data non futura e importo positivo obbligatori.');
   const next = { ...series, overrides: { ...series.overrides, [key]: { ...series.overrides[key], actual, legacyCompleted: false, done: false } } };
   validateSeries(next);
