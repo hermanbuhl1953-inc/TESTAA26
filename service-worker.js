@@ -1,51 +1,51 @@
 // Generato da build-shell: cache sigillata, mai aggiornata asset per asset.
 const RELEASE = {
-  "shell": "b0e3eb04ac2049e90dcc",
-  "runtime": "./assets/shell/runtime-e95aa8f96e3199307eac.js",
+  "shell": "9ace8716c9120a57222f",
+  "runtime": "./assets/shell/runtime-05f64c0855bcfbfcea0c.js",
   "files": [
     {
       "path": "./index.html",
-      "sha256": "65c0d4aeb55b408c81a0aef45c7c49e3c3f6b04c89c6ab144f166b92d7cceb49"
+      "sha256": "7d45b9dfc82a787316f515f1c62bf2dab6385a845102cf9a4b046d8243b2d187"
     },
     {
       "path": "./app.js",
-      "sha256": "e95aa8f96e3199307eac289429d9f4dd9da63f19d1840972bcce091ed5668d23"
+      "sha256": "05f64c0855bcfbfcea0c385b04b1e9d8e6f3ce86e2cf1e770d29c26d1b0324a6"
     },
     {
-      "path": "./assets/shell/runtime-e95aa8f96e3199307eac.js",
-      "sha256": "e95aa8f96e3199307eac289429d9f4dd9da63f19d1840972bcce091ed5668d23"
+      "path": "./assets/shell/runtime-05f64c0855bcfbfcea0c.js",
+      "sha256": "05f64c0855bcfbfcea0c385b04b1e9d8e6f3ce86e2cf1e770d29c26d1b0324a6"
     },
     {
       "path": "./styles.css",
-      "sha256": "289f4952915803db01d62ae56b1ccd639320143466340f6b259b6585ecfb8257"
+      "sha256": "639b3bb0785165e095e99edccd42f30abc295c7981ee58ff285b8efcf413109b"
     },
     {
       "path": "./planning.js",
-      "sha256": "65c82537a5682ab894bf0ce2e6467e0dc645458081482a62b1eafa468dae9953"
+      "sha256": "2f304f5c75bf1a28c2e831488200fd1134ae150bb146b8532e53eac42a27b542"
     },
     {
       "path": "./radar.js",
-      "sha256": "90fcfb94149b669e89527d9c724b4163803f9d7bd1d88381e28254cba378636b"
+      "sha256": "82d6cbfa5263cfb88bb113cf09595058f0703cef1fae3196ce68acf9a2f3f139"
     },
     {
       "path": "./manifest.webmanifest",
-      "sha256": "04e0037f9042cd94565bd4706a2912cf627c45f49eaf034ef8d158890d18ffec"
+      "sha256": "e88e0722fa4538bad8a6bff90bb083b8d69a0953123d9dad52db34f8a4516540"
     },
     {
       "path": "./assets/catalog/deadlines.json",
-      "sha256": "833a2cb3a2d31151b80adb225967fbc47fc70ddd7207892e539789371d3ee9e3"
+      "sha256": "243c8dfda8d228e61afe9fc7076c2af24d0969146e58b3fd0dd2defb9819756c"
     },
     {
       "path": "./assets/catalog/benefits.json",
-      "sha256": "d564141a081d1d971a558022754862e9a80ff7355aa6d8b810deb1a887be916d"
+      "sha256": "b05639550debe7ebd30cf92dad40842a0f8391b1242ac0b1e930e3eeb4ba3704"
     },
     {
       "path": "./assets/catalog/source-monitoring.json",
-      "sha256": "9a276104a63a03b97de23093c7fdacf94d4bd1aad9529f73432be5f6e1fecea0"
+      "sha256": "b52cbb2adecc431e69ac55fa0d1b6e8d6b12768b0170e979f8925a2b95d9dbb6"
     },
     {
       "path": "./icons/icon.svg",
-      "sha256": "1e618834b872e94a94a2de8ace0c90330fa548d3642fde5e0662bb8064eecd2a"
+      "sha256": "3431a6d8021862dba8ddc22f0fdf07456fae935389931b994883cd910633223d"
     },
     {
       "path": "./icons/icon-192.png",
@@ -56,7 +56,7 @@ const RELEASE = {
       "sha256": "30998c80710334d4df0b51cc8f707ccbb638d9bf5a65ca87477414978fcf2b9a"
     }
   ],
-  "id": "c0306e2db13beca4cd2b"
+  "id": "88b14bd7b694a876f3d7"
 };
 const CACHE_NAME = `scadenzario-shell-v15-${RELEASE.id}`;
 const marker = new URL('./.shell-complete', self.registration.scope).href;

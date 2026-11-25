@@ -47,16 +47,22 @@ const readyState = (deadlines = [deadline]) => {
 test('Home: ordine sezioni e nessuna rassicurazione statica, massimo tre schede azione', () => {
   const data = readyState(Array.from({ length: 6 }, (_, i) => ({ ...deadline, id: `item-${i}` })));
   const h = harness(data), html = h.api.renderHome();
-  const headings = ['Da gestire', 'Andamento previsto', 'Attendibilità del piano', 'Prossime scadenze'];
-  for (let i = 1; i < headings.length; i++) assert.ok(html.indexOf(headings[i - 1]) < html.indexOf(headings[i]));
+  // La Home mostra stato, azioni e scadenze; previsione e attendibilità in dettaglio vivono solo in Planning.
+  const headings = ['Saldo minimo previsto', 'Da gestire', 'Prossime scadenze'];
+  for (let i = 1; i < headings.length; i++) assert.ok(html.indexOf(headings[i - 1]) < html.indexOf(headings[i]), headings[i]);
+  assert.doesNotMatch(html, /Attendibilità del piano|Andamento previsto/);
+  const planning = h.api.renderPlanning();
+  assert.ok(planning.indexOf('Attendibilità del piano') > -1 && planning.indexOf('Andamento previsto') > -1);
   assert.equal((html.match(/class="radar-card"/g) ?? []).length, 3);
   assert.equal((h.api.renderRadar().match(/class="radar-card"/g) ?? []).length, 6);
   assert.match(html, /Apri Radar/); assert.doesNotMatch(html, /tutto sotto controllo|Ciao /);
 });
 test('Home: manca saldo, nessuna falsa previsione numerica, CTA apre campo reale', () => {
   const h = harness(savedState());
-  assert.match(h.api.renderHome(), /Imposta il punto di partenza del tuo piano/);
-  assert.match(h.api.renderHome(), /Previsione non calcolabile/);
+  const home = h.api.renderHome();
+  assert.match(home, /Imposta il saldo per vedere la previsione/);
+  assert.doesNotMatch(home, /Saldo minimo previsto|forecast-chart/);
+  assert.equal((home.match(/data-action="configure-plan"/g) ?? []).length, 1, 'una sola CTA per impostare il saldo');
   h.click('configure-plan');
   assert.match(h.node('#app').innerHTML, /id="planner-form"/);
   assert.match(h.node('#app').innerHTML, /name="openingBalance"/);
@@ -64,7 +70,8 @@ test('Home: manca saldo, nessuna falsa previsione numerica, CTA apre campo reale
 });
 test('Home: dati mancanti e arretrati vicini ai numeri, calcolo espandibile', () => {
   const h = harness(readyState());
-  const html = h.api.renderHome();
+  assert.match(h.api.renderHome(), /Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale/);
+  const html = h.api.renderPlanning();
   assert.match(html, /La previsione non racconta ancora tutto/);
   assert.ok(html.indexOf('Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale.') < html.indexOf('Prima sotto riserva'));
   assert.match(html, /<summary>Come viene calcolato\?/);
@@ -73,7 +80,10 @@ test('Home: dati mancanti e arretrati vicini ai numeri, calcolo espandibile', ()
 });
 test('Home: dati presenti usa messaggio condizionale e non afferma completezza', () => {
   const h = harness(readyState([{ ...deadline, dueDate: '2026-12-01' }]));
-  const html = h.api.renderHome();
+  const home = h.api.renderHome();
+  assert.match(home, /Solo movimenti inseriti; spese non registrate escluse/);
+  assert.doesNotMatch(home, /Alcuni dati sono incompleti|Alcune uscite non sono incluse/);
+  const html = h.api.renderPlanning();
   assert.match(html, /Previsione basata sui movimenti inseriti. Le spese non registrate non sono considerate./);
   assert.doesNotMatch(html, /La previsione non racconta ancora tutto/);
 });
@@ -246,9 +256,9 @@ test('Home e Planning: nessuno zero inventato in caso di errore e dettagli calco
   assert.equal(h.api.currentRadar().projection, null);
   for (const html of [h.api.renderHome(), h.api.renderPlanning()]) {
     assert.match(html, /Previsione non calcolabile/);
-    assert.match(html, /Come viene calcolato\?/);
-    assert.doesNotMatch(html, /Riepilogo mensile/);
+    assert.doesNotMatch(html, /Riepilogo mensile|Saldo minimo previsto/);
   }
+  assert.match(h.api.renderPlanning(), /Come viene calcolato\?/);
 });
 test('Home e Planning: stesso motore e periodo effettivo, no selettori periodo decorativi', () => {
   const h = harness(readyState([{ ...deadline, dueDate: '2026-12-01' }]));

@@ -1076,3 +1076,40 @@ h2 { font-weight: 700; }
 @media (max-width: 760px) {
   .onboarding-card { padding: var(--space-5); }
 }
+
+/* ===== Home semplificata: stato, cose da gestire, prossime scadenze =====
+   Classi dedicate (home-status, home-attention, attention-*): non dipendono dagli override precedenti. */
+.home-status { margin-block: var(--space-5) var(--space-6); padding: var(--space-6); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+.home-status h2 { margin: 0 0 var(--space-2); font-size: 15px; color: var(--text-muted); font-weight: 600; }
+.home-status p { margin-block: 0 var(--space-3); }
+.home-status .status-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-3); margin-block-end: var(--space-1); }
+.home-status .status-figure strong { font-size: 32px; line-height: 1.15; letter-spacing: -.5px; }
+.home-status .status-figure span, .home-status .status-state { color: var(--text-muted); }
+.home-status .status-state.is-critical { color: var(--error-ink); font-weight: 650; }
+.home-status .forecast-chart { max-inline-size: 520px; inline-size: 100%; block-size: auto; margin-block: var(--space-2); }
+.home-status .forecast-line { stroke: var(--navy); }
+.home-status .field-help { font-size: var(--font-secondary); color: var(--text-muted); }
+.home-attention { margin-block: var(--space-6); }
+.home-attention .section-heading { align-items: start; flex-wrap: wrap; gap: var(--space-2); }
+.home-attention .section-heading > div { flex: 1 1 160px; min-width: 0; }
+.home-attention .radar-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--space-3); align-items: start; }
+.radar-card[data-severity] { border-inline-start: 4px solid var(--warning-marker); }
+.radar-card[data-severity="0"] { border-inline-start-color: var(--error-marker); }
+.radar-card[data-severity="2"] { border-inline-start-color: var(--control-border); }
+.attention-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.attention-head h3 { margin: 0; font-size: 18px; }
+.attention-head .money { font-size: 18px; }
+.attention-reasons { margin: var(--space-2) 0 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.attention-reasons li { margin: 0; font-size: 15px; line-height: 1.45; }
+.attention-occurrences { margin-block: var(--space-3) 0; }
+.attention-occurrences summary { cursor: pointer; font-weight: 600; font-size: var(--font-secondary-large); }
+.attention-occurrences ul { margin: var(--space-2) 0 0; padding: 0; list-style: none; max-block-size: 220px; overflow: auto; }
+.attention-occurrences li { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); padding-block: var(--space-1); border-block-end: 1px solid var(--line); font-size: 14px; }
+.home-attention .radar-actions { margin-block-start: var(--space-3); }
+.home-attention .radar-actions .button { min-block-size: 44px; }
+@media (max-width: 720px) {
+  .home-status { padding: var(--space-5); }
+  .home-status .status-figure strong { font-size: 28px; }
+  .home-attention .radar-actions .button { inline-size: 100%; }
+}
+.radar-page .radar-card details.attention-occurrences { margin-block: var(--space-3) 0; padding: var(--space-2) var(--space-3); }
