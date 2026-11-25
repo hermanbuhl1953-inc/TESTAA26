@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "updateMode": "github-actions",
-  "lastRunAt": "2026-11-25T09:41:52.747Z",
+  "lastRunAt": "2026-11-25T15:35:31.319Z",
   "pendingReviewCount": 3,
   "sources": [
     {
@@ -12,7 +12,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-unico-e-universale-per-i-figli-a-carico-55984.assegno-unico-e-universale-per-i-figli-a-carico.html",
       "status": "error-ai",
-      "lastCheckedAt": "2026-11-25T09:41:49.392Z",
+      "lastCheckedAt": "2026-11-25T15:35:27.609Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-13T17:51:45.884Z",
@@ -24,7 +24,7 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/FAQ-Maggiorazione_Assegno_unico_universale.pdf",
         "contentHash": "348a016fdeea4c465d457b07b4725385033bb5e96e1596371b537550ad0bee66",
         "sizeBytes": 130314,
-        "lastSeenAt": "2026-11-25T09:41:50.239Z",
+        "lastSeenAt": "2026-11-25T15:35:28.957Z",
         "analyzedAt": "2026-11-13T17:48:58.622Z",
         "status": "analyzed",
         "textLength": 7867,
@@ -40,7 +40,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.assegno-di-inclusione-adi.html",
       "status": "error-ai",
-      "lastCheckedAt": "2026-11-25T09:41:49.406Z",
+      "lastCheckedAt": "2026-11-25T15:35:27.620Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-13T17:51:45.901Z",
@@ -52,7 +52,7 @@
         "url": "https://www.inps.it/content/dam/inps-site/pdf/allegati/2025/Calendario_pagamenti_ADI_settembre_dicembre_2025.pdf",
         "contentHash": "29a1d7d21a9eec563f8444c634054c72618b85f8366cf31b5946f6be1b84b9d0",
         "sizeBytes": 250664,
-        "lastSeenAt": "2026-11-25T09:41:52.074Z",
+        "lastSeenAt": "2026-11-25T15:35:31.314Z",
         "analyzedAt": "2026-11-13T17:49:00.750Z",
         "status": "analyzed",
         "textLength": 1216,
@@ -68,7 +68,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione-51105.bonus-asilo-nido-e-forme-di-supporto-presso-la-propria-abitazione.html",
       "status": "unchanged",
-      "lastCheckedAt": "2026-11-25T09:41:49.407Z",
+      "lastCheckedAt": "2026-11-25T15:35:27.621Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null,
@@ -83,7 +83,7 @@
       "municipality": null,
       "url": "https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.bonus-nuovi-nati.html",
       "status": "unchanged",
-      "lastCheckedAt": "2026-11-25T09:41:49.408Z",
+      "lastCheckedAt": "2026-11-25T15:35:27.622Z",
       "pendingReview": false,
       "lastChange": null,
       "lastError": null,
@@ -98,7 +98,7 @@
       "municipality": null,
       "url": "https://www.arera.it/consumatori/bonus-sociale",
       "status": "error-ai",
-      "lastCheckedAt": "2026-11-25T09:41:49.409Z",
+      "lastCheckedAt": "2026-11-25T15:35:27.623Z",
       "pendingReview": true,
       "lastChange": {
         "detectedAt": "2026-11-25T09:41:49.409Z",
