@@ -22,15 +22,16 @@ test('Home compatta: griglia adattiva locale, colonna mobile e nessun clipping i
 test('Home: ordine e tre priorità, Radar completo e avvisi non ridotti a rassicurazione', () => {
   const h = harness(readyState(Array.from({ length: 6 }, (_, i) => ({ ...deadline, id: `row-${i}` }))));
   const html = h.api.renderHome();
-  const headings = ['Da gestire', 'Andamento previsto', 'Attendibilità del piano', 'Prossime scadenze'];
+  const headings = ['Saldo minimo previsto', 'Da gestire', 'Prossime scadenze'];
   for (let i = 1; i < headings.length; i++) assert.ok(html.indexOf(headings[i - 1]) < html.indexOf(headings[i]));
   assert.equal((html.match(/class="radar-card"/g) ?? []).length, 3);
   assert.equal((h.api.renderRadar().match(/class="radar-card"/g) ?? []).length, 6);
   assert.match(html, /Apri Radar/);
   assert.match(html, /Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale/);
-  assert.match(html, /problemi nei dati/);
-  assert.match(html, /Come viene calcolato/);
-  assert.match(harness(savedState()).api.renderHome(), /Imposta il punto di partenza/);
+  const planning = h.api.renderPlanning();
+  assert.match(planning, /problemi nei dati/);
+  assert.match(planning, /Come viene calcolato/);
+  assert.match(harness(savedState()).api.renderHome(), /Imposta il saldo per vedere la previsione/);
 });
 
 test('Date UI civili: anno, bisestili, date impossibili e oggetti non validi senza eccezioni', () => {
@@ -108,8 +109,10 @@ test('Regressione prestazioni Radar: 1200 aperte senza lookup o rigenerazioni pe
   h.resetGenerations();
   const before = JSON.stringify(h.api.state), storage = [...h.storage];
   const html = h.api.renderRadarItems(items);
-  assert.equal((html.match(/class="radar-card"/g) ?? []).length, 1200);
+  // Una scheda per serie; tutte le 1200 occorrenze restano elencate nel dettaglio, senza troncamenti.
+  assert.equal((html.match(/class="radar-card"/g) ?? []).length, 1);
   assert.equal((html.match(/Data prevista di pagamento:/g) ?? []).length, 1200);
+  assert.equal((html.match(/<li><span>Scadenza:/g) ?? []).length, 1200);
   assert.equal(h.evaluate('lookupCalls'), 0, 'Il renderer non deve cercare ogni occorrenza');
   assert.equal(h.evaluate('seriesMapCalls'), 1, 'Una sola indicizzazione delle serie per rendering');
   assert.deepEqual(h.generationStats, { calls: 0, occurrences: 0 }, 'Le etichette non devono rigenerare serie');

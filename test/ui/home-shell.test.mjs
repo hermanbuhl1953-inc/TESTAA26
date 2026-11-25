@@ -105,7 +105,8 @@ test('D: graph uses the engine rows in the exact order and retains same-day trou
   assert.equal(vertices[0][1], vertices[1][1], 'No invented time-of-day');
   assert.ok(+vertices[0][2] > +vertices[1][2], 'Outflow low precedes inflow');
   assert.equal(g.minimumX, vertices[0][1]); assert.equal(g.minimumY, vertices[0][2]);
-  const html = h.api.renderHome();
+  assert.match(h.api.renderHome(), /Minimo prudenziale -100,00 € il 1 dic 2026/);
+  const html = h.api.renderPlanning();
   assert.match(html, /Minimo prudenziale -100,00 € il 1 dic 2026/);
   assert.match(html, /Prima sotto riserva<\/dt><dd>1 dic 2026/);
   assert.match(html, /Prima sotto zero<\/dt><dd>1 dic 2026/);
@@ -124,12 +125,13 @@ test('D: every forecast row is plotted; no averaging, monthly downsampling or cu
 test('D: historical low after reference remains visible and is not called a future/bank balance', () => {
   const data = readyState([{ ...deadline, overrides: { '2026-11-17': { actual: { date: '2026-11-10', amountCents: 60000 } } } }]);
   data.planner.incomes = [income({ dueDate: '2026-11-18', amountCents: 90000 })];
-  const h = harness(data), p = h.api.currentRadar().projection, g = geometry(h), html = h.api.renderHome();
+  const h = harness(data), p = h.api.currentRadar().projection, g = geometry(h), home = h.api.renderHome(), html = h.api.renderPlanning();
   assert.equal(p.minimumDate, '2026-11-10'); assert.equal(p.minimumCents, -10000);
   assert.equal(g.minimumX, g.path.match(/ H ([\d.]+) V/)[1]);
-  assert.match(html, /Minimo dal saldo di riferimento/); assert.match(html, /-100,00 €/);
-  assert.match(html, /anche precedenti a oggi/); assert.match(html, /Non è un saldo bancario/);
-  assert.doesNotMatch(html, /Saldo oggi|Prossimi 12 mesi|3 su 4|controlli superati/);
+  assert.match(html, /Minimo dal saldo di riferimento/); assert.match(html, /-100,00 €/); assert.match(home, /-100,00 €/);
+  assert.match(home, /il 10 nov 2026/);
+  assert.match(html, /anche precedente a oggi/); assert.match(home, /Non è un saldo bancario/);
+  assert.doesNotMatch(home + html, /Saldo oggi|Prossimi 12 mesi|3 su 4|controlli superati/);
 });
 
 test('D: actual before reference is absorbed once, and reference-date actual follows all/none', () => {
@@ -154,16 +156,16 @@ test('D: unknown/late/archived/cancelled/completed forecasts do not become chart
   assert.equal(p.rows.length, 1); assert.ok(p.warnings.length >= 2);
   assert.equal((geometry(h).path.match(/ V /g) ?? []).length, 1);
   assert.match(h.api.renderHome(), /Alcune uscite non sono incluse: il margine potrebbe risultare più alto del reale/);
-  assert.match(h.api.renderHome(), /problemi nei dati/);
+  assert.match(h.api.renderPlanning(), /problemi nei dati/);
 });
 
 test('D: no projection means no zero chart, no made-up minimum and visible recovery actions', () => {
   for (const data of [savedState(), { ...readyState(), planner: { ...readyState().planner, sameDayActualsIncluded: null } }]) {
     const h = harness(data), html = h.api.renderHome();
     assert.equal(geometry(h), null);
-    assert.doesNotMatch(html, /<svg class="forecast-chart|class="home-minimum"|class="summary-value money"/);
-    assert.match(html, /Previsione non calcolabile/); assert.match(html, /data-action="configure-plan"/);
-    assert.match(html, /Nessun saldo stimato/);
+    assert.doesNotMatch(html, /<svg class="forecast-chart|status-figure|Saldo minimo previsto/);
+    assert.match(html, /Imposta il saldo per vedere la previsione/); assert.match(html, /data-action="configure-plan"/);
+    assert.match(html, /Le scadenze funzionano anche senza/);
   }
 });
 
@@ -180,7 +182,7 @@ test('D: zero balance/reserve, negative opening and no-events charts have finite
 
 test('D: monthly alternative keeps all engine periods including thirteenth partial month', () => {
   const h = harness(readyState([future({ recurrenceMonths: 1 })]));
-  const p = h.api.currentRadar().projection, html = h.api.renderHome();
+  const p = h.api.currentRadar().projection, html = h.api.renderPlanning();
   assert.equal(p.months.length, 13);
   const table = html.match(/<table class="forecast-table">([\s\S]*?)<\/table>/)[1];
   assert.equal((table.match(/<th scope="row">/g) ?? []).length, p.months.length);
@@ -189,15 +191,15 @@ test('D: monthly alternative keeps all engine periods including thirteenth parti
 });
 
 test('D: chart has distinct accessible names, minimum explanation and no whole-app live region', () => {
-  const h = harness(readyState([])), html = h.api.renderHome();
-  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
-  assert.equal(ids.length, new Set(ids).size);
-  for (const [, names] of html.matchAll(/aria-labelledby="([^"]+)"/g)) for (const name of names.split(' ')) assert.ok(ids.includes(name), name);
-  for (const suffix of ['summary', 'full']) {
+  const h = harness(readyState([]));
+  for (const [html, suffix] of [[h.api.renderHome(), 'summary'], [h.api.renderPlanning(), 'full']]) {
+    const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+    assert.equal(ids.length, new Set(ids).size);
+    for (const [, names] of html.matchAll(/aria-labelledby="([^"]+)"/g)) for (const name of names.split(' ')) assert.ok(ids.includes(name), name);
     assert.match(html, new RegExp(`role="img" aria-labelledby="forecast-title-${suffix} forecast-desc-${suffix}"`));
     assert.match(html, new RegExp(`<desc id="forecast-desc-${suffix}">[\\s\\S]*?Uscite prima delle entrate`));
+    assert.doesNotMatch(html, /aria-live=/);
   }
-  assert.doesNotMatch(html, /aria-live=/);
 });
 
 test('D: Home priority count is capped, full Radar remains complete and original actions persist', () => {
@@ -205,11 +207,13 @@ test('D: Home priority count is capped, full Radar remains complete and original
   const items = h.api.currentRadar().items, home = h.api.renderHome();
   assert.equal((home.match(/class="radar-card"/g) ?? []).length, 3);
   assert.equal((h.api.renderRadar().match(/class="radar-card"/g) ?? []).length, items.length);
+  const detail = h.api.renderRadar();
   for (const item of items.slice(0, 3)) {
-    assert.ok(home.includes(item.description)); assert.ok(home.includes(`data-id="${item.occurrenceId}"`));
+    assert.ok(detail.includes(item.description), 'il Radar conserva le descrizioni del motore');
+    assert.ok(home.includes(`data-id="${item.occurrenceId}"`));
     assert.ok(home.includes(`data-action="${item.action}"`));
   }
-  assert.match(home, /class="priority-meta"/); assert.match(home, /Uscita da verificare/);
+  assert.match(home, /Da verificare:/); assert.doesNotMatch(home, /class="priority-meta"/);
 });
 
 test('D: priority amounts respect original occurrence override, zero and @ in IDs without regeneration', () => {

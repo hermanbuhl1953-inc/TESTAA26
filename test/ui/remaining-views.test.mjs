@@ -117,7 +117,8 @@ test('F: full Radar decoration does not regenerate per item or truncate long lis
   const h = harness(readyState([{ ...deadline, dueDate: '1926-11-17', recurrenceMonths: 1, count: 1200 }]));
   h.resetGenerations();
   const html = h.api.renderRadar();
-  assert.equal((html.match(/class="radar-card"/g) ?? []).length, 1200);
+  assert.equal((html.match(/class="radar-card"/g) ?? []).length, 1);
+  assert.equal((html.match(/<li><span>Scadenza:/g) ?? []).length, 1200, 'ogni occorrenza resta raggiungibile');
   assert.equal(h.generationStats.calls, 0);
 });
 
